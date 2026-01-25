@@ -6,6 +6,7 @@ OPENCODE_BIN="$HOME/.opencode/bin/opencode"
 OPENCODE_PORT="${OPENCODE_PORT:-5551}"
 OPENCODE_PID_FILE="$HOME/.opencode/server.pid"
 OPENCODE_LOG_FILE="$HOME/.opencode/server.log"
+OPENCODE_VM_HOST="${OPENCODE_VM_HOST:-}"
 
 opencode() {
   if [[ ! -x "$OPENCODE_BIN" ]]; then
@@ -16,6 +17,31 @@ opencode() {
       return 1
     fi
   fi
+  
+  if [[ "$1" == "--vm" ]]; then
+    shift
+    if [[ -z "$OPENCODE_VM_HOST" ]]; then
+      echo "Error: OPENCODE_VM_HOST not set"
+      echo "Add to ~/.secrets: export OPENCODE_VM_HOST='your-vm.tailnet.ts.net'"
+      return 1
+    fi
+    echo "Connecting to VM: $OPENCODE_VM_HOST"
+    "$OPENCODE_BIN" attach "https://$OPENCODE_VM_HOST" "$@"
+    return
+  fi
+  
+  if _oc_is_running; then
+    if [[ $# -eq 0 ]]; then
+      "$OPENCODE_BIN" attach "http://localhost:$OPENCODE_PORT"
+      return
+    fi
+    
+    if [[ -d "$1" || "$1" == "." || "$1" == ".." || "$1" == *"/"* ]]; then
+      "$OPENCODE_BIN" attach "http://localhost:$OPENCODE_PORT" --dir "$1"
+      return
+    fi
+  fi
+  
   "$OPENCODE_BIN" "$@"
 }
 
