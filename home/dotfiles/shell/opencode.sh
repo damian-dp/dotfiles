@@ -1,29 +1,13 @@
 #!/bin/zsh
-# OpenCode wrapper with local/VM mode support
-# Manages OpenCode server and OpenCode Manager (web UI)
+# OpenCode wrapper with remote access via Tailscale
+# Single server, multiple projects, accessible from anywhere
 
-# Configuration - set VM_HOST in ~/.secrets or here
-OPENCODE_VM_HOST="${OPENCODE_VM_HOST:-}"
-OPENCODE_MANAGER_DIR="${OPENCODE_MANAGER_DIR:-$HOME/.config/opencode-manager}"
 OPENCODE_BIN="$HOME/.opencode/bin/opencode"
+OPENCODE_PORT="${OPENCODE_PORT:-5551}"
+OPENCODE_PID_FILE="$HOME/.opencode/server.pid"
+OPENCODE_LOG_FILE="$HOME/.opencode/server.log"
 
 opencode() {
-  local vm_mode=false
-  local args=()
-  
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --vm)
-        vm_mode=true
-        shift
-        ;;
-      *)
-        args+=("$1")
-        shift
-        ;;
-    esac
-  done
-  
   if [[ ! -x "$OPENCODE_BIN" ]]; then
     echo "OpenCode not found. Installing..."
     curl -fsSL https://opencode.ai/install | bash
@@ -32,116 +16,169 @@ opencode() {
       return 1
     fi
   fi
+  "$OPENCODE_BIN" "$@"
+}
+
+oc() {
+  local cmd="${1:-status}"
+  shift 2>/dev/null || true
   
-  if [[ "$vm_mode" == true ]]; then
-    if [[ -z "$OPENCODE_VM_HOST" ]]; then
-      echo "Error: OPENCODE_VM_HOST not set"
-      echo "Add to ~/.secrets: export OPENCODE_VM_HOST='your-vm.tailnet'"
-      return 1
+  case "$cmd" in
+    serve|start)
+      _oc_start "$@"
+      ;;
+    stop)
+      _oc_stop
+      ;;
+    restart)
+      _oc_stop
+      sleep 1
+      _oc_start "$@"
+      ;;
+    attach)
+      _oc_attach "$@"
+      ;;
+    status)
+      _oc_status
+      ;;
+    logs)
+      if [[ -f "$OPENCODE_LOG_FILE" ]]; then
+        tail -f "$OPENCODE_LOG_FILE"
+      else
+        echo "No log file found"
+      fi
+      ;;
+    url)
+      _oc_url
+      ;;
+    *)
+      echo "Usage: oc <command>"
+      echo ""
+      echo "Commands:"
+      echo "  serve    Start opencode web server with Tailscale"
+      echo "  stop     Stop server and remove Tailscale serve"
+      echo "  restart  Restart server"
+      echo "  attach   Attach terminal to running server"
+      echo "  status   Show server status (default)"
+      echo "  logs     Follow server logs"
+      echo "  url      Print remote URL"
+      ;;
+  esac
+}
+
+_oc_start() {
+  if _oc_is_running; then
+    echo "OpenCode server already running (PID: $(cat "$OPENCODE_PID_FILE"))"
+    _oc_status
+    return 0
+  fi
+  
+  echo "Starting OpenCode web server on port $OPENCODE_PORT..."
+  mkdir -p "$(dirname "$OPENCODE_LOG_FILE")"
+  
+  nohup "$OPENCODE_BIN" web \
+    --hostname 0.0.0.0 \
+    --port "$OPENCODE_PORT" \
+    > "$OPENCODE_LOG_FILE" 2>&1 &
+  
+  local pid=$!
+  echo $pid > "$OPENCODE_PID_FILE"
+  
+  echo "Waiting for server to start..."
+  local max_attempts=30
+  local attempt=0
+  while [[ $attempt -lt $max_attempts ]]; do
+    if curl -s "http://localhost:$OPENCODE_PORT" > /dev/null 2>&1; then
+      break
     fi
-    
-    if ! command -v tailscale >/dev/null 2>&1; then
-      echo "Error: Tailscale not installed"
-      return 1
+    sleep 1
+    ((attempt++))
+  done
+  
+  if ! curl -s "http://localhost:$OPENCODE_PORT" > /dev/null 2>&1; then
+    echo "Failed to start server. Check logs: $OPENCODE_LOG_FILE"
+    return 1
+  fi
+  
+  echo "Configuring Tailscale serve..."
+  tailscale serve --bg --https=443 "http://localhost:$OPENCODE_PORT" 2>/dev/null
+  
+  echo ""
+  _oc_status
+}
+
+_oc_stop() {
+  echo "Removing Tailscale serve..."
+  tailscale serve --https=443 off 2>/dev/null || true
+  
+  if [[ -f "$OPENCODE_PID_FILE" ]]; then
+    local pid=$(cat "$OPENCODE_PID_FILE")
+    if kill -0 "$pid" 2>/dev/null; then
+      echo "Stopping OpenCode server (PID: $pid)..."
+      kill "$pid" 2>/dev/null
+      local max_attempts=10
+      local attempt=0
+      while kill -0 "$pid" 2>/dev/null && [[ $attempt -lt $max_attempts ]]; do
+        sleep 1
+        ((attempt++))
+      done
+      if kill -0 "$pid" 2>/dev/null; then
+        echo "Force killing..."
+        kill -9 "$pid" 2>/dev/null
+      fi
     fi
+    rm -f "$OPENCODE_PID_FILE"
+  fi
+  
+  echo "Stopped."
+}
+
+_oc_attach() {
+  if ! _oc_is_running; then
+    echo "OpenCode server not running. Start with: oc serve"
+    return 1
+  fi
+  
+  local dir="${1:-.}"
+  echo "Attaching to OpenCode server..."
+  "$OPENCODE_BIN" attach "http://localhost:$OPENCODE_PORT" --dir "$dir"
+}
+
+_oc_status() {
+  if _oc_is_running; then
+    local pid=$(cat "$OPENCODE_PID_FILE")
+    echo "OpenCode server: running (PID: $pid)"
+    echo "  Local:  http://localhost:$OPENCODE_PORT"
     
-    if ! tailscale status >/dev/null 2>&1; then
-      echo "Error: Tailscale not connected"
-      return 1
+    local ts_status=$(tailscale serve status 2>/dev/null)
+    if [[ -n "$ts_status" && "$ts_status" != "No serve config" ]]; then
+      local hostname=$(tailscale status --self --json 2>/dev/null | jq -r '.Self.DNSName' | sed 's/\.$//')
+      echo "  Remote: https://$hostname"
+    else
+      echo "  Remote: not configured (run 'oc serve' to enable)"
     fi
-    
-    echo "Connecting to VM: $OPENCODE_VM_HOST"
-    "$OPENCODE_BIN" attach "https://${OPENCODE_VM_HOST}:4096" "${args[@]}"
   else
-    "$OPENCODE_BIN" "${args[@]}"
+    echo "OpenCode server: stopped"
+    echo "  Run 'oc serve' to start"
   fi
 }
 
-ocm() {
-  local cmd="${1:-status}"
-  shift 2>/dev/null || true
-  local compose_file="$OPENCODE_MANAGER_DIR/docker-compose.yml"
-  
-  case "$cmd" in
-    start)
-      if [[ -z "$AUTH_SECRET" ]]; then
-        export AUTH_SECRET=$(openssl rand -base64 32)
-      fi
-      echo "Starting OpenCode Manager (local)..."
-      AUTH_SECRET="$AUTH_SECRET" ADMIN_EMAIL="$ADMIN_EMAIL" ADMIN_PASSWORD="$ADMIN_PASSWORD" \
-        docker-compose -f "$compose_file" --project-directory "$OPENCODE_MANAGER_DIR" --profile local up -d
-      echo "OpenCode Manager: http://localhost:5003"
-      ;;
-    remote)
-      if [[ -z "$TS_AUTHKEY" ]]; then
-        echo "Error: TS_AUTHKEY not set"
-        echo "Add to ~/.secrets: export TS_AUTHKEY=\$(op read \"op://Employee/Tailscale Auth Key/credential\" 2>/dev/null)"
-        return 1
-      fi
-      if [[ -z "$AUTH_SECRET" ]]; then
-        export AUTH_SECRET=$(openssl rand -base64 32)
-      fi
-      echo "Starting OpenCode Manager (remote with Tailscale)..."
-      TS_AUTHKEY="$TS_AUTHKEY" AUTH_SECRET="$AUTH_SECRET" ADMIN_EMAIL="$ADMIN_EMAIL" ADMIN_PASSWORD="$ADMIN_PASSWORD" \
-        docker-compose -f "$compose_file" --project-directory "$OPENCODE_MANAGER_DIR" --profile remote up -d
-      echo "Waiting for Tailscale to authenticate..."
-      sleep 10
-      local ts_hostname=$(docker exec opencode-tailscale tailscale status --json 2>/dev/null | jq -r '.Self.DNSName' | sed 's/\.$//')
-      if [[ -n "$ts_hostname" ]]; then
-        echo "OpenCode Manager: https://$ts_hostname"
-      else
-        echo "Tailscale still starting. Check: docker logs opencode-tailscale"
-      fi
-      ;;
-    stop)
-      echo "Stopping OpenCode Manager..."
-      docker-compose -f "$compose_file" --project-directory "$OPENCODE_MANAGER_DIR" --profile local --profile remote down
-      ;;
-    restart)
-      ocm stop
-      ocm start
-      ;;
-    logs)
-      docker-compose -f "$compose_file" --project-directory "$OPENCODE_MANAGER_DIR" --profile local --profile remote logs -f
-      ;;
-    status)
-      if docker ps --format '{{.Names}}' | grep -q '^opencode-manager$'; then
-        echo "OpenCode Manager: running"
-        if docker ps --format '{{.Names}}' | grep -q '^opencode-tailscale$'; then
-          local ts_hostname=$(docker exec opencode-tailscale tailscale status --json 2>/dev/null | jq -r '.Self.DNSName' | sed 's/\.$//')
-          echo "  Mode: remote (Tailscale)"
-          echo "  Web UI: https://$ts_hostname"
-        else
-          echo "  Mode: local"
-          echo "  Web UI: http://localhost:5003"
-        fi
-        docker ps --filter name=opencode --format 'table {{.Names}}\t{{.Status}}'
-      else
-        echo "OpenCode Manager: stopped"
-        echo "  Run 'ocm start' for local mode"
-        echo "  Run 'ocm remote' for Tailscale mode"
-      fi
-      ;;
-    update)
-      echo "Updating OpenCode Manager..."
-      docker-compose -f "$compose_file" --project-directory "$OPENCODE_MANAGER_DIR" pull
-      ocm restart
-      ;;
-    shell)
-      docker exec -it opencode-manager sh
-      ;;
-    *)
-      echo "Usage: ocm <command>"
-      echo ""
-      echo "Commands:"
-      echo "  start    Start locally (http://localhost:5003)"
-      echo "  remote   Start with Tailscale (https://hostname.tailnet)"
-      echo "  stop     Stop all containers"
-      echo "  restart  Restart containers"
-      echo "  status   Show status (default)"
-      echo "  logs     Follow logs"
-      echo "  update   Pull latest image and restart"
-      echo "  shell    Open shell in container"
-      ;;
-  esac
+_oc_url() {
+  local hostname=$(tailscale status --self --json 2>/dev/null | jq -r '.Self.DNSName' | sed 's/\.$//')
+  if [[ -n "$hostname" ]]; then
+    echo "https://$hostname"
+  else
+    echo "Tailscale not configured"
+    return 1
+  fi
+}
+
+_oc_is_running() {
+  if [[ -f "$OPENCODE_PID_FILE" ]]; then
+    local pid=$(cat "$OPENCODE_PID_FILE")
+    if kill -0 "$pid" 2>/dev/null; then
+      return 0
+    fi
+  fi
+  return 1
 }
