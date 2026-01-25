@@ -1,0 +1,4 @@
+# Linux: use local SSH key for signing (simpler than 1Password CLI wrapper)
+# Key is stored at ~/.ssh/id_ed25519_signing
+[user]
+	signingkey = ~/.ssh/id_ed25519_signing.pub

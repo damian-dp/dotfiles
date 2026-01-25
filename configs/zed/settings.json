@@ -1,0 +1,44 @@
+{
+  "colorize_brackets": true,
+  "agent_buffer_font_size": 13.0,
+  "agent_ui_font_size": 14.0,
+  "ui_font_family": "Menlo",
+  "buffer_font_weight": 400.0,
+  "git": {
+    "inline_blame": {
+      "show_commit_summary": false,
+      "enabled": true
+    }
+  },
+  "agent": {
+    "default_model": {
+      "provider": "ollama",
+      "model": "gpt-oss:20b"
+    },
+    "model_parameters": []
+  },
+  "debugger": {
+    "dock": "right"
+  },
+  "terminal": {
+    "toolbar": {
+      "breadcrumbs": false
+    },
+    "font_size": 13.0,
+    "font_family": "MesloLGS NF"
+  },
+  "buffer_line_height": "standard",
+  "buffer_font_family": "MesloLGS NF",
+  "icon_theme": "VSCode Icons for Zed (Dark Official Icons)",
+  "features": {
+    "edit_prediction_provider": "zed"
+  },
+  "base_keymap": "Cursor",
+  "ui_font_size": 16,
+  "buffer_font_size": 13.0,
+  "theme": {
+    "mode": "system",
+    "light": "Solarized Dark",
+    "dark": "Solarized Dark"
+  }
+}

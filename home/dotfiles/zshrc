@@ -1,0 +1,93 @@
+# Cooper's zshrc.local
+# Managed by dotenv - https://github.com/crcorbett/dotenv
+# 
+# NOTE: This file is sourced by home-manager's generated .zshrc
+# Oh-my-zsh and powerlevel10k are managed by home-manager (see home/core.nix)
+
+# =============================================================================
+# Terminal Color Support
+# =============================================================================
+# Ensure truecolor (24-bit color) is advertised to applications
+# Required for proper theming in tools like OpenCode, especially inside tmux
+export COLORTERM=truecolor
+
+# =============================================================================
+# Secrets (API keys, tokens - not in repo)
+# =============================================================================
+[[ -f "$HOME/.secrets" ]] && source "$HOME/.secrets"
+
+# =============================================================================
+# 1Password SSH Agent
+# =============================================================================
+if [[ -S "$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock" ]]; then
+  # macOS
+  export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+elif [[ -S "$HOME/.1password/agent.sock" ]]; then
+  # Linux
+  export SSH_AUTH_SOCK="$HOME/.1password/agent.sock"
+fi
+
+# =============================================================================
+# Node.js (NVM)
+# =============================================================================
+export NVM_DIR="$HOME/.nvm"
+[[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
+[[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
+
+# =============================================================================
+# Package Managers
+# =============================================================================
+# pnpm
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  export PNPM_HOME="$HOME/Library/pnpm"
+else
+  export PNPM_HOME="$HOME/.local/share/pnpm"
+fi
+[[ -d "$PNPM_HOME" ]] && export PATH="$PNPM_HOME:$PATH"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+[[ -d "$BUN_INSTALL" ]] && export PATH="$BUN_INSTALL/bin:$PATH"
+[[ -s "$BUN_INSTALL/_bun" ]] && source "$BUN_INSTALL/_bun"
+
+# =============================================================================
+# PATH
+# =============================================================================
+export PATH="$HOME/.local/bin:$PATH"
+
+# Homebrew (macOS)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  export PATH="/opt/homebrew/bin:$PATH"
+  export PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH"
+fi
+
+# =============================================================================
+# Tools
+# =============================================================================
+# opencode
+export OPENCODE_EXPERIMENTAL="true"
+[[ -d "$HOME/.opencode/bin" ]] && export PATH="$HOME/.opencode/bin:$PATH"
+
+# LM Studio (macOS)
+[[ -d "$HOME/.lmstudio/bin" ]] && export PATH="$PATH:$HOME/.lmstudio/bin"
+
+# =============================================================================
+# Aliases
+# =============================================================================
+alias ll="ls -la"
+alias gs="git status"
+alias gp="git push"
+alias gl="git pull"
+
+# AI coding
+alias vibe-claude="claude --dangerously-skip-permissions"
+
+# tmux
+alias ta="tmux attach -t"
+alias tl="tmux ls"
+alias tn="tmux new -s"
+
+# =============================================================================
+# Powerlevel10k Config
+# =============================================================================
+[[ -f "$HOME/.p10k.zsh" ]] && source "$HOME/.p10k.zsh"

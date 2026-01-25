@@ -1,0 +1,21 @@
+# Damian's SSH Config
+# Managed by dotfiles
+#
+# NOTE: 1Password SSH bookmarks and agent config are managed locally on macOS
+# via ~/.ssh/config (not tracked in dotfiles). See README for setup instructions.
+
+# =============================================================================
+# Development VMs (Tailscale)
+# =============================================================================
+# TODO: Add your Azure VM here after setup
+# Host dev-vm
+# 	HostName <tailscale-ip>
+# 	User damian
+
+# =============================================================================
+# Global Settings
+# =============================================================================
+Host *
+	ServerAliveInterval 60
+	ServerAliveCountMax 3
+	AddKeysToAgent yes
