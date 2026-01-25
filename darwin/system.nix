@@ -5,6 +5,7 @@
   # Nix Settings (managed by Determinate, not nix-darwin)
   # =============================================================================
   nix.enable = false;
+  documentation.enable = false;
   
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;

@@ -8,6 +8,11 @@
   # Let home-manager manage itself
   programs.home-manager.enable = true;
 
+  # Disable manual generation (fixes builtins.toFile warning)
+  manual.html.enable = false;
+  manual.manpages.enable = false;
+  manual.json.enable = false;
+
   # =============================================================================
   # Packages
   # =============================================================================
