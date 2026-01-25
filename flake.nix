@@ -21,9 +21,21 @@
     in
     {
       # =======================================================================
-      # Linux Thin Client
+      # Linux VM (OpenCode Server)
       # =======================================================================
       # Usage: nix run home-manager -- switch --flake .#damian@linux
+      # 
+      # This config enables:
+      #   - OpenCode web server (auto-starts via systemd)
+      #   - Tailscale serve (exposes server securely)
+      #
+      # First-time setup on VM:
+      #   1. Install nix: sh <(curl -L https://nixos.org/nix/install) --daemon
+      #   2. Clone dotfiles: git clone <repo> ~/dotfiles
+      #   3. Apply: nix run home-manager -- switch --flake ~/dotfiles#damian@linux
+      #   4. Auth tailscale: tailscale up
+      #   5. Server auto-starts on next login
+      #
       homeConfigurations = {
         "damian@linux" = home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
@@ -33,6 +45,19 @@
             {
               home.username = "damian";
               home.homeDirectory = "/home/damian";
+            }
+          ];
+        };
+        
+        "damian@linux-client" = home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages.x86_64-linux;
+          modules = [
+            ./home/core.nix
+            ./home/modules/opencode.nix
+            {
+              home.username = "damian";
+              home.homeDirectory = "/home/damian";
+              services.opencode.server.enable = false;
             }
           ];
         };
