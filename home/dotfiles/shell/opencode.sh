@@ -30,16 +30,18 @@ opencode() {
     return
   fi
   
-  if _oc_is_running; then
-    if [[ $# -eq 0 ]]; then
-      "$OPENCODE_BIN" attach "http://localhost:$OPENCODE_PORT"
-      return
+  if [[ $# -eq 0 ]] || [[ -d "$1" || "$1" == "." || "$1" == ".." || "$1" == *"/"* ]]; then
+    if ! _oc_is_running; then
+      echo "Starting OpenCode server..."
+      _oc_start_quiet
     fi
     
-    if [[ -d "$1" || "$1" == "." || "$1" == ".." || "$1" == *"/"* ]]; then
+    if [[ $# -eq 0 ]]; then
+      "$OPENCODE_BIN" attach "http://localhost:$OPENCODE_PORT"
+    else
       "$OPENCODE_BIN" attach "http://localhost:$OPENCODE_PORT" --dir "$1"
-      return
     fi
+    return
   fi
   
   "$OPENCODE_BIN" "$@"
@@ -92,14 +94,11 @@ oc() {
   esac
 }
 
-_oc_start() {
+_oc_start_quiet() {
   if _oc_is_running; then
-    echo "OpenCode server already running (PID: $(cat "$OPENCODE_PID_FILE"))"
-    _oc_status
     return 0
   fi
   
-  echo "Starting OpenCode web server on port $OPENCODE_PORT..."
   mkdir -p "$(dirname "$OPENCODE_LOG_FILE")"
   
   nohup "$OPENCODE_BIN" web \
@@ -107,10 +106,8 @@ _oc_start() {
     --port "$OPENCODE_PORT" \
     > "$OPENCODE_LOG_FILE" 2>&1 &
   
-  local pid=$!
-  echo $pid > "$OPENCODE_PID_FILE"
+  echo $! > "$OPENCODE_PID_FILE"
   
-  echo "Waiting for server to start..."
   local max_attempts=30
   local attempt=0
   while [[ $attempt -lt $max_attempts ]]; do
@@ -126,11 +123,23 @@ _oc_start() {
     return 1
   fi
   
-  echo "Configuring Tailscale serve..."
   tailscale serve --bg --https=443 "http://localhost:$OPENCODE_PORT" 2>/dev/null
+}
+
+_oc_start() {
+  if _oc_is_running; then
+    echo "OpenCode server already running (PID: $(cat "$OPENCODE_PID_FILE"))"
+    _oc_status
+    return 0
+  fi
   
-  echo ""
-  _oc_status
+  echo "Starting OpenCode web server on port $OPENCODE_PORT..."
+  _oc_start_quiet
+  
+  if [[ $? -eq 0 ]]; then
+    echo ""
+    _oc_status
+  fi
 }
 
 _oc_stop() {
