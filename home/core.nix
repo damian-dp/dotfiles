@@ -64,6 +64,9 @@
     # Shell functions (commit, opencode wrapper)
     ".config/shell/commit.sh".source = ./dotfiles/shell/commit.sh;
     ".config/shell/opencode.sh".source = ./dotfiles/shell/opencode.sh;
+
+    # Claude CLI (CLAUDE.md is read-only global instructions)
+    ".claude/CLAUDE.md".source = ./dotfiles/claude/CLAUDE.md;
   };
 
   # =============================================================================
@@ -224,6 +227,36 @@
         echo "Installing Codex..."
         $DRY_RUN_CMD npm install -g @openai/codex
       fi
+    '';
+
+    # =========================================================================
+    # Writable App Configs (copied so apps can modify them)
+    # =========================================================================
+    copyAppConfigs = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      # Claude CLI settings (only copy if not exists - preserves user's accumulated permissions)
+      if [ ! -f "$HOME/.claude/settings.json" ]; then
+        $DRY_RUN_CMD mkdir -p "$HOME/.claude"
+        $DRY_RUN_CMD cp ${./dotfiles/claude/settings.json} "$HOME/.claude/settings.json"
+        $DRY_RUN_CMD chmod 644 "$HOME/.claude/settings.json"
+      fi
+
+      # GitHub CLI config (only copy if not exists)
+      if [ ! -f "$HOME/.config/gh/config.yml" ]; then
+        $DRY_RUN_CMD mkdir -p "$HOME/.config/gh"
+        $DRY_RUN_CMD cp ${./dotfiles/gh/config.yml} "$HOME/.config/gh/config.yml"
+        $DRY_RUN_CMD chmod 644 "$HOME/.config/gh/config.yml"
+      fi
+
+      # Warp launch configurations (only copy if not exists)
+      if [ ! -d "$HOME/.warp/launch_configurations" ]; then
+        $DRY_RUN_CMD mkdir -p "$HOME/.warp/launch_configurations"
+      fi
+      for config in ${./dotfiles/warp}/*.yaml; do
+        filename=$(basename "$config")
+        if [ ! -f "$HOME/.warp/launch_configurations/$filename" ]; then
+          $DRY_RUN_CMD cp "$config" "$HOME/.warp/launch_configurations/$filename"
+        fi
+      done
     '';
   };
 }

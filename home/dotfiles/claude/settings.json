@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__linear__list_projects",
+      "mcp__linear__list_teams",
+      "mcp__linear__create_project",
+      "mcp__linear__create_issue",
+      "mcp__linear__list_issue_statuses",
+      "mcp__linear__update_issue",
+      "mcp__cubitt-docs__search_components",
+      "mcp__cubitt-docs__get_component",
+      "mcp__cubitt-docs__search_icons",
+      "mcp__cubitt-docs__search_docs",
+      "mcp__cubitt-docs__get_doc_content",
+      "mcp__deep-wiki__ask_question",
+      "Bash(cd:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(xargs ls:*)",
+      "Bash(pnpm turbo build:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm check-types:*)",
+      "Bash(pnpm dev)"
+    ],
+    "deny": [],
+    "ask": [],
+    "defaultMode": "bypassPermissions"
+  },
+  "enabledPlugins": {
+    "typescript-lsp@claude-plugins-official": true,
+    "ralph-wiggum@claude-plugins-official": false,
+    "swift-lsp@claude-plugins-official": true
+  }
+}
