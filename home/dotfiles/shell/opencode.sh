@@ -22,10 +22,6 @@ _oc_stop() {
   tailscale serve --https=443 off 2>/dev/null
 }
 
-_oc_count_instances() {
-  pgrep -f "opencode" 2>/dev/null | wc -l | tr -d ' '
-}
-
 opencode() {
   if [[ ! -x "$OPENCODE_BIN" ]]; then
     echo "Installing OpenCode..."
@@ -35,21 +31,12 @@ opencode() {
   if ! _oc_is_running; then
     echo "Starting OpenChamber..."
     _oc_start_daemon
-    echo "Web UI: http://localhost:$OPENCHAMBER_PORT"
+    echo "Web: http://localhost:$OPENCHAMBER_PORT"
     echo "Remote: $(oc url 2>/dev/null)"
     echo ""
   fi
 
-  local count_before=$(_oc_count_instances)
-  
   "$OPENCODE_BIN" "$@"
-  
-  local count_after=$(_oc_count_instances)
-  if [[ "$count_after" -le 1 ]] && _oc_is_running; then
-    echo ""
-    echo "Last instance closed. Stopping OpenChamber..."
-    _oc_stop
-  fi
 }
 
 oc() {
