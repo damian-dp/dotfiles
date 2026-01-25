@@ -17,11 +17,6 @@ DISABLE_AUTO_TITLE="true"
 export COLORTERM=truecolor
 
 # =============================================================================
-# Secrets (API keys, tokens - not in repo)
-# =============================================================================
-[[ -f "$HOME/.secrets" ]] && source "$HOME/.secrets"
-
-# =============================================================================
 # 1Password SSH Agent
 # =============================================================================
 if [[ -S "$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock" ]]; then
@@ -38,6 +33,14 @@ fi
 export NVM_DIR="$HOME/.nvm"
 [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
 [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
+
+# GitHub NPM token (lazy-loaded from 1Password)
+gh_npm_token() {
+  if [[ -z "$GH_NPM_TOKEN" ]]; then
+    export GH_NPM_TOKEN=$(/opt/homebrew/bin/op read "op://Employee/4xwfq5opt6k5e6vlpskxpn5vaa/token" 2>/dev/null)
+  fi
+  echo "$GH_NPM_TOKEN"
+}
 
 # =============================================================================
 # Package Managers
