@@ -6,7 +6,7 @@ OPENCODE_BIN="$HOME/.opencode/bin/opencode"
 OPENCODE_PORT="${OPENCODE_PORT:-5551}"
 OPENCODE_PID_FILE="$HOME/.opencode/server.pid"
 OPENCODE_LOG_FILE="$HOME/.opencode/server.log"
-OPENCODE_VM_HOST="${OPENCODE_VM_HOST:-dev-vm-damian.taild53693.ts.net}"
+OPENCODE_VM_HOST="${OPENCODE_VM_HOST:-dev-vm-team.taild53693.ts.net}"
 
 opencode() {
   if [[ ! -x "$OPENCODE_BIN" ]]; then
