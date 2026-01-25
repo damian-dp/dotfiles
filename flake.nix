@@ -29,6 +29,7 @@
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           modules = [
             ./home/core.nix
+            ./home/linux.nix
             {
               home.username = "damian";
               home.homeDirectory = "/home/damian";

@@ -1,0 +1,92 @@
+services:
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: opencode-tailscale
+    hostname: opencode-vm
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    volumes:
+      - tailscale-state:/var/lib/tailscale
+      - ./serve-config:/config
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY:-}
+      - TS_AUTH_ONCE=true
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_SERVE_CONFIG=/config/serve.json
+      - TS_HOSTNAME=opencode-vm
+      - TS_USERSPACE=false
+      - TS_ENABLE_HEALTH_CHECK=true
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9002/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    profiles:
+      - remote
+
+  opencode-manager:
+    image: ghcr.io/chriswritescode-dev/opencode-manager:latest
+    container_name: opencode-manager
+    restart: unless-stopped
+    network_mode: service:tailscale
+    depends_on:
+      tailscale:
+        condition: service_healthy
+    volumes:
+      - workspace:/workspace
+      - database:/app/data
+      - ${HOME}/.opencode:/root/.opencode:ro
+    environment:
+      - NODE_ENV=production
+      - AUTH_SECRET=${AUTH_SECRET:-}
+      - AUTH_TRUSTED_ORIGINS=https://${TS_HOSTNAME:-opencode-vm}.${TS_TAILNET:-taild53693.ts.net}
+      - AUTH_SECURE_COOKIES=true
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5003/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles:
+      - remote
+
+  opencode-manager-local:
+    image: ghcr.io/chriswritescode-dev/opencode-manager:latest
+    container_name: opencode-manager
+    restart: unless-stopped
+    ports:
+      - "5003:5003"
+      - "5100:5100"
+      - "5101:5101"
+      - "5102:5102"
+      - "5103:5103"
+    volumes:
+      - workspace:/workspace
+      - database:/app/data
+      - ${HOME}/.opencode:/root/.opencode:ro
+    environment:
+      - NODE_ENV=production
+      - AUTH_SECRET=${AUTH_SECRET:-}
+      - AUTH_TRUSTED_ORIGINS=${AUTH_TRUSTED_ORIGINS:-http://localhost:5003}
+      - AUTH_SECURE_COOKIES=${AUTH_SECURE_COOKIES:-false}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5003/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles:
+      - local
+
+volumes:
+  workspace:
+  database:
+  tailscale-state:

@@ -70,6 +70,13 @@
     ".config/shell/commit.sh".source = ./dotfiles/shell/commit.sh;
     ".config/shell/opencode.sh".source = ./dotfiles/shell/opencode.sh;
 
+    # OpenCode Manager (Docker)
+    ".config/opencode-manager/docker-compose.yml".source = ./dotfiles/opencode-manager/docker-compose.yml;
+    ".config/opencode-manager/.env.example".source = ./dotfiles/opencode-manager/.env.example;
+    ".config/opencode-manager/serve-config/serve.json".source = ./dotfiles/opencode-manager/serve-config/serve.json;
+
+
+
     # Claude CLI (CLAUDE.md is read-only global instructions)
     ".claude/CLAUDE.md".source = ./dotfiles/claude/CLAUDE.md;
   };
@@ -262,6 +269,16 @@
           $DRY_RUN_CMD cp "$config" "$HOME/.warp/launch_configurations/$filename"
         fi
       done
+
+      # OpenCode Manager .env (only copy example if .env doesn't exist)
+      if [ ! -f "$HOME/.config/opencode-manager/.env" ]; then
+        AUTH_SECRET=$(${pkgs.openssl}/bin/openssl rand -base64 32)
+        $DRY_RUN_CMD cat > "$HOME/.config/opencode-manager/.env" << EOF
+AUTH_SECRET=$AUTH_SECRET
+AUTH_TRUSTED_ORIGINS=http://localhost:5003
+AUTH_SECURE_COOKIES=false
+EOF
+      fi
     '';
   };
 }
