@@ -28,14 +28,27 @@ services:
     profiles:
       - remote
 
+  nginx:
+    image: openresty/openresty:alpine
+    container_name: opencode-nginx
+    restart: unless-stopped
+    network_mode: service:tailscale
+    depends_on:
+      tailscale:
+        condition: service_healthy
+    volumes:
+      - ./nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro
+    profiles:
+      - remote
+
   opencode-manager:
     image: ghcr.io/chriswritescode-dev/opencode-manager:latest
     container_name: opencode-manager
     restart: unless-stopped
     network_mode: service:tailscale
     depends_on:
-      tailscale:
-        condition: service_healthy
+      nginx:
+        condition: service_started
     volumes:
       - workspace:/workspace
       - database:/app/data
