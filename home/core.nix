@@ -60,6 +60,10 @@
     ".config/opencode/opencode.jsonc".source = ./dotfiles/opencode/opencode.jsonc;
     ".config/opencode/oh-my-opencode.json".source = ./dotfiles/opencode/oh-my-opencode.json;
     ".config/opencode/package.json".source = ./dotfiles/opencode/package.json;
+
+    # Shell functions (commit, opencode wrapper)
+    ".config/shell/commit.sh".source = ./dotfiles/shell/commit.sh;
+    ".config/shell/opencode.sh".source = ./dotfiles/shell/opencode.sh;
   };
 
   # =============================================================================
@@ -84,11 +88,12 @@
     '';
   };
   
-  # Add external CLI paths
+  # Add external CLI paths (tools installed outside nix)
   home.sessionPath = [
     "$HOME/.local/bin"
     "$HOME/.opencode/bin"
     "$HOME/.bun/bin"
+    "$HOME/.antigravity/antigravity/bin"
   ];
 
   # =============================================================================

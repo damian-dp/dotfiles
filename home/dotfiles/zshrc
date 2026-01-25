@@ -1,8 +1,13 @@
-# Cooper's zshrc.local
-# Managed by dotenv - https://github.com/crcorbett/dotenv
+# Damian's zshrc.local
+# Managed by nix dotfiles
 # 
 # NOTE: This file is sourced by home-manager's generated .zshrc
 # Oh-my-zsh and powerlevel10k are managed by home-manager (see home/core.nix)
+
+# =============================================================================
+# Oh-My-Zsh Settings
+# =============================================================================
+DISABLE_AUTO_TITLE="true"
 
 # =============================================================================
 # Terminal Color Support
@@ -55,6 +60,9 @@ export BUN_INSTALL="$HOME/.bun"
 # =============================================================================
 export PATH="$HOME/.local/bin:$PATH"
 
+# Antigravity (AI coding)
+[[ -d "$HOME/.antigravity/antigravity/bin" ]] && export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
+
 # Homebrew (macOS)
 if [[ "$OSTYPE" == "darwin"* ]]; then
   export PATH="/opt/homebrew/bin:$PATH"
@@ -86,6 +94,15 @@ alias vibe-claude="claude --dangerously-skip-permissions"
 alias ta="tmux attach -t"
 alias tl="tmux ls"
 alias tn="tmux new -s"
+
+# =============================================================================
+# Shell Functions
+# =============================================================================
+# commit() - Claude-powered commit message generator
+[[ -f "$HOME/.config/shell/commit.sh" ]] && source "$HOME/.config/shell/commit.sh"
+
+# opencode() - OpenCode wrapper with Tailscale serve + notifications
+[[ -f "$HOME/.config/shell/opencode.sh" ]] && source "$HOME/.config/shell/opencode.sh"
 
 # =============================================================================
 # Powerlevel10k Config
