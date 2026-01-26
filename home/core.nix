@@ -155,15 +155,15 @@
   # =============================================================================
   programs.git = {
     enable = true;
-    userName = "Damian Petrov";
-    userEmail = "hello@damianpetrov.com";
 
     signing = {
       key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEo5Gg7jA4PuksRMUCl3fGu/B0nt8IpVbMzzbqGOQ4px";
       signByDefault = true;
     };
 
-    extraConfig = {
+    settings = {
+      user.name = "Damian Petrov";
+      user.email = "hello@damianpetrov.com";
       gpg.format = "ssh";
       init.defaultBranch = "main";
       pull.rebase = true;
