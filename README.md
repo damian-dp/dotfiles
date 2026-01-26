@@ -68,19 +68,29 @@ darwin-rebuild switch --flake .#Damian-MBP
 dotfiles/
 ├── flake.nix                 # Main entry - defines configurations
 ├── flake.lock                # Pinned dependencies
+├── bootstrap-vm.sh           # Quick VM bootstrap script
 │
 ├── home/
-│   ├── core.nix              # Shared: CLI tools, dotfiles, mosh
+│   ├── core.nix              # Shared: CLI tools, dotfiles
+│   ├── linux.nix             # Linux-specific config
 │   ├── workstation.nix       # macOS: fonts, app configs (Ghostty/Zed/Cursor)
-│   ├── p10k.zsh              # Powerlevel10k theme
+│   ├── modules/
+│   │   └── opencode.nix      # OpenCode module
 │   └── dotfiles/
 │       ├── zshrc             # Shell config
 │       ├── p10k.zsh          # Powerlevel10k theme
-│       ├── gitconfig         # Git config with 1Password signing
-│       ├── gitconfig-macos   # macOS 1Password path
-│       ├── gitconfig-linux   # Linux 1Password path
+│       ├── gitconfig-macos   # macOS 1Password signing path
+│       ├── gitconfig-linux   # Linux 1Password signing path
 │       ├── ssh_config        # SSH config
-│       └── ghostty.conf      # Terminal config
+│       ├── ghostty.conf      # Terminal config
+│       ├── tmux.conf         # Tmux config
+│       ├── shell/
+│       │   ├── commit.sh     # Claude-powered commit messages
+│       │   └── opencode.sh   # OpenCode wrapper
+│       ├── opencode/         # OpenCode config files
+│       ├── openchamber/      # OpenChamber config (copy-once)
+│       ├── warp/             # Warp terminal configs
+│       └── claude/           # Claude CLI config
 │
 ├── darwin/
 │   └── system.nix            # macOS system preferences
@@ -89,15 +99,17 @@ dotfiles/
 │   └── configuration.nix     # NixOS system config (if needed)
 │
 ├── configs/                  # Workstation app configs (macOS)
-│   ├── zed/
+│   ├── cursor/
 │   │   ├── settings.json
-│   │   └── keymap.json
-│   └── cursor/
-│       └── settings.json
+│   │   └── keybindings.json
+│   └── raycast/              # Raycast config backup
 │
 ├── scripts/
+│   ├── bootstrap.sh          # Initial machine setup
 │   ├── setup-tailscale.sh    # Tailscale install + auth
-│   └── exit_node_setup.sh    # Configure VM as exit node
+│   ├── exit_node_setup.sh    # Configure VM as exit node
+│   ├── raycast-export.sh     # Export Raycast config
+│   └── raycast-import.sh     # Import Raycast config
 │
 ├── APPS.md                   # Manual app installation list
 ├── SSH_SETUP.md              # 1Password SSH setup guide
@@ -110,8 +122,9 @@ dotfiles/
 ### Both Platforms (core.nix)
 
 - **Shell**: zsh + oh-my-zsh + Powerlevel10k
-- **Tools**: git, gh, ripgrep, fd, fzf, eza, zoxide, delta, lazygit, neovim, direnv
-- **Network**: mosh (low-latency SSH for high-latency connections)
+- **Tools**: git, gh, ripgrep, fd, fzf, eza, zoxide, delta, lazygit, jq, htop, btop, tmux, direnv
+- **Python**: uv (fast Python package manager)
+- **Network**: tailscale, mosh (low-latency SSH)
 - **SSH**: 1Password integration (see [SSH_SETUP.md](SSH_SETUP.md))
 - **Git**: 1Password SSH commit signing
 
@@ -121,6 +134,32 @@ dotfiles/
 - **App configs**: Ghostty, Zed, Cursor
 - **System prefs**: Dock autohide, dark mode, text replacements
 - **Services**: Tailscale, Touch ID for sudo
+
+## Config Management
+
+Three approaches are used depending on whether apps need to write to their configs:
+
+| Method | Description | Use Case |
+|--------|-------------|----------|
+| **Nix module** | Declarative config in `.nix` files | Apps with home-manager modules (git, gh, zed) |
+| **Symlink** | Read-only link to nix store | Configs that don't change (keybindings, themes) |
+| **Copy-once** | Copied on first run, then writable | Apps that write state/permissions to config |
+
+### Config Details
+
+| Config | Method | Source | Notes |
+|--------|--------|--------|-------|
+| Git | module | `home/core.nix` | `programs.git` |
+| GitHub CLI | module | `home/core.nix` | `programs.gh` |
+| Zed | module | `home/workstation.nix` | `programs.zed-editor` |
+| Ghostty | symlink | `home/dotfiles/ghostty.conf` | |
+| Cursor settings | symlink | `configs/cursor/settings.json` | |
+| Cursor keybindings | symlink | `configs/cursor/keybindings.json` | |
+| Warp | symlink | `home/dotfiles/warp/` | |
+| Claude `CLAUDE.md` | symlink | `home/dotfiles/claude/CLAUDE.md` | Instructions only |
+| Claude `settings.json` | copy-once | `home/dotfiles/claude/settings.json` | Writes permissions |
+| OpenCode | copy-once | `home/dotfiles/opencode/opencode.json` | Writes permissions |
+| OpenChamber | copy-once | `home/dotfiles/openchamber/settings.json` | Writes projects, VAPID keys |
 
 ## Secrets
 
@@ -218,7 +257,7 @@ mosh user@hostname
 
 Mosh provides local echo and handles connection interruptions gracefully.
 
-## Shell Aliases
+## Shell Aliases & Functions
 
 | Alias | Command |
 |-------|---------|
@@ -227,8 +266,18 @@ Mosh provides local echo and handles connection interruptions gracefully.
 | `gp` | `git push` |
 | `gl` | `git pull` |
 | `lg` | `lazygit` |
-| `vim`, `v` | `nvim` |
-| `signin` | Sign in to 1Password CLI (personal + work) |
+| `ta` | `tmux attach -t` |
+| `tl` | `tmux ls` |
+| `tn` | `tmux new -s` |
+| `vibe-claude` | `claude --dangerously-skip-permissions` |
+| `signin` | Sign in to 1Password CLI (personal + work accounts) |
+
+### Shell Functions
+
+| Function | Description |
+|----------|-------------|
+| `commit` | Claude-powered commit message generator (see `~/.config/shell/commit.sh`) |
+| `opencode` | OpenCode wrapper with Tailscale serve (see `~/.config/shell/opencode.sh`) |
 
 ## Text Replacements (macOS)
 

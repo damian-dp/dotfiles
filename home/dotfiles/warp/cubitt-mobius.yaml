@@ -31,15 +31,15 @@ windows:
         layout:
           split_direction: horizontal
           panes:
-            - cwd: /Users/damian/ REPOSITORIES/TILT/Cubitt
+            - cwd: /Users/damian/code/tilt/cubitt
               is_focused: true
-            - cwd: /Users/damian/ REPOSITORIES/TILT/Cubitt
+            - cwd: /Users/damian/code/tilt/cubitt
         color: magenta
       - title: Mobius
         layout:
           split_direction: horizontal
           panes:
-            - cwd: /Users/damian/ REPOSITORIES/TILT/Mobius
+            - cwd: /Users/damian/code/tilt/mobius
               is_focused: true
-            - cwd: /Users/damian/ REPOSITORIES/TILT/Mobius
+            - cwd: /Users/damian/code/tilt/mobius
         color: green

@@ -69,10 +69,15 @@ After installing 1Password, enable the SSH agent:
 
 ### Ghostty
 
-Config is managed by dotenv at `~/Library/Application Support/com.mitchellh.ghostty/config`
+Config is managed by home-manager (symlinked from `home/dotfiles/ghostty.conf`).
 
-### Zed & Cursor
+Target: `~/Library/Application Support/com.mitchellh.ghostty/config`
 
-Configs are managed by dotenv:
-- Zed: `~/.config/zed/settings.json`
-- Cursor: `~/Library/Application Support/Cursor/User/settings.json`
+### Zed
+
+Config is managed declaratively via `programs.zed-editor` in `home/workstation.nix`.
+Edit the Nix file, then rebuild to apply changes.
+
+### Cursor
+
+Config is symlinked from `configs/cursor/settings.json` → `~/Library/Application Support/Cursor/User/settings.json`

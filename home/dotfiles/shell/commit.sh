@@ -27,7 +27,8 @@ commit() {
 
   # Always run from repo root to ensure paths are consistent
   local repo_root=$(git rev-parse --show-toplevel)
-  pushd "$repo_root" > /dev/null
+  local original_dir="$PWD"
+  cd "$repo_root" || { echo "Failed to cd to repo root"; return 1; }
 
   # Pre-fetch all git context
   local staged=$(git diff --cached --stat 2>/dev/null)
@@ -86,7 +87,7 @@ commit() {
   # Bail if nothing to commit
   if [[ -z "$diff" && -z "$untracked" ]]; then
     echo "Nothing to commit"
-    popd > /dev/null
+    cd "$original_dir"
     return 0
   fi
 
@@ -179,7 +180,7 @@ ${diff}"
       echo "Error: $(cat "$claude_stderr")"
     fi
     rm -f "$claude_stderr"
-    popd > /dev/null
+    cd "$original_dir"
     return 1
   fi
   rm -f "$claude_stderr"
@@ -202,7 +203,7 @@ ${diff}"
     echo "━━━ Claude Response ━━━"
     echo "$msg"
     echo "━━━━━━━━━━━━━━━━━━━━━━━"
-    popd > /dev/null
+    cd "$original_dir"
     return 1
   fi
 
@@ -282,7 +283,7 @@ ${diff}"
     read -r REPLY
     if [[ ! $REPLY =~ ^[Yy]?$ ]]; then
       echo "Aborted."
-      popd > /dev/null
+      cd "$original_dir"
       return 0
     fi
   fi
@@ -403,5 +404,5 @@ ${diff}"
     echo "✓ Done ($total_committed commit(s))"
   fi
 
-  popd > /dev/null
+  cd "$original_dir"
 }

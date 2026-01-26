@@ -19,7 +19,7 @@
   home.packages = with pkgs; [
     # Core CLI tools
     git
-    gh
+    # gh is managed via programs.gh below
     curl
     wget
     htop
@@ -27,19 +27,19 @@
     jq
     tree
     tmux
-    
+
     # Search & navigation
     ripgrep
     fd
     # fzf, eza, zoxide configured via programs.* for shell integration
-    
+
     # Git tools
     delta
     lazygit
-    
+
     # Python tooling
     uv
-    
+
     # Networking
     tailscale
     # Note: mosh installed via apt in bootstrap.sh (needs to be in system PATH for mosh-server)
@@ -55,14 +55,14 @@
   home.file = {
     ".zshrc.local".source = ./dotfiles/zshrc;
     ".p10k.zsh".source = ./dotfiles/p10k.zsh;
-    # Note: .gitconfig is copied (not symlinked) so gh auth can write to it
+    # Platform-specific 1Password signing paths (included by programs.git)
     ".gitconfig-macos".source = ./dotfiles/gitconfig-macos;
     ".gitconfig-linux".source = ./dotfiles/gitconfig-linux;
     ".ssh/config".source = ./dotfiles/ssh_config;
     ".tmux.conf".source = ./dotfiles/tmux.conf;
 
-    # OpenCode
-    ".config/opencode/opencode.jsonc".source = ./dotfiles/opencode/opencode.jsonc;
+    # OpenCode (oh-my-opencode plugin config + package.json for MCP)
+    # Note: opencode.json is copy-once (see activation script) because OpenCode writes to it
     ".config/opencode/oh-my-opencode.json".source = ./dotfiles/opencode/oh-my-opencode.json;
     ".config/opencode/package.json".source = ./dotfiles/opencode/package.json;
 
@@ -70,8 +70,12 @@
     ".config/shell/commit.sh".source = ./dotfiles/shell/commit.sh;
     ".config/shell/opencode.sh".source = ./dotfiles/shell/opencode.sh;
 
-    # Claude CLI (CLAUDE.md is read-only global instructions)
+    # Claude CLI - CLAUDE.md symlinked (instructions only, never written)
     ".claude/CLAUDE.md".source = ./dotfiles/claude/CLAUDE.md;
+    # Note: settings.json is copy-once (see activation script) because Claude writes permissions to it
+
+    # Warp launch configurations (symlinked - single source of truth)
+    ".warp/launch_configurations/cubitt-mobius.yaml".source = ./dotfiles/warp/cubitt-mobius.yaml;
   };
 
   # =============================================================================
@@ -79,7 +83,7 @@
   # =============================================================================
   programs.zsh = {
     enable = true;
-    
+
     # Source nix daemon for standalone home-manager on Linux
     # This ensures nix-profile/bin is in PATH before zsh starts
     # (nix-darwin handles this automatically, but standalone home-manager doesn't)
@@ -89,13 +93,13 @@
         . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
       fi
     '';
-    
+
     # Source custom zshrc for additional config (p10k, secrets, etc.)
     initContent = ''
       [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
     '';
   };
-  
+
   # Add external CLI paths (tools installed outside nix)
   home.sessionPath = [
     "$HOME/.local/bin"
@@ -124,26 +128,83 @@
   # Tool Integrations (with shell hooks)
   # =============================================================================
   # Using programs.* for automatic shell integration instead of just packages
-  
+
   programs.fzf = {
     enable = true;
     enableZshIntegration = true;
   };
-  
+
   programs.eza = {
     enable = true;
     enableZshIntegration = true;
     extraOptions = [ "--group-directories-first" "--icons" ];
   };
-  
+
   programs.zoxide = {
     enable = true;
     enableZshIntegration = true;
   };
-  
+
   programs.direnv = {
     enable = true;
     nix-direnv.enable = true;  # Better nix integration
+  };
+
+  # =============================================================================
+  # Git (using built-in module - single source of truth)
+  # =============================================================================
+  programs.git = {
+    enable = true;
+    userName = "Damian Petrov";
+    userEmail = "hello@damianpetrov.com";
+
+    signing = {
+      key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEo5Gg7jA4PuksRMUCl3fGu/B0nt8IpVbMzzbqGOQ4px";
+      signByDefault = true;
+    };
+
+    extraConfig = {
+      gpg.format = "ssh";
+      init.defaultBranch = "main";
+      pull.rebase = true;
+      push.autoSetupRemote = true;
+      core.editor = "vim";
+    };
+
+    # Platform-specific 1Password signing paths
+    includes = [
+      {
+        condition = "gitdir:/Users/";
+        path = "~/.gitconfig-macos";
+      }
+      {
+        condition = "gitdir:/home/";
+        path = "~/.gitconfig-linux";
+      }
+    ];
+  };
+
+  # =============================================================================
+  # GitHub CLI (using built-in module - writes auth to hosts.yml, not config.yml)
+  # =============================================================================
+  programs.gh = {
+    enable = true;
+    settings = {
+      version = 1;
+      git_protocol = "https";
+      prompt = "enabled";
+      prefer_editor_prompt = "disabled";
+      pager = "";
+      aliases = {
+        co = "pr checkout";
+      };
+      http_unix_socket = "";
+      browser = "";
+      color_labels = "disabled";
+      accessible_colors = "disabled";
+      accessible_prompter = "disabled";
+      spinner = "enabled";
+    };
   };
 
   # =============================================================================
@@ -166,7 +227,7 @@
     tl = "tmux ls";
     tn = "tmux new -s";
     lg = "lazygit";
-    
+
     # 1Password CLI sign-in (personal + work accounts)
     signin = ''eval "$(op signin --account my)" && eval "$(op signin --account tiltlegal)"'';
   };
@@ -185,22 +246,16 @@
   };
 
   # =============================================================================
-  # Writable Config Files (copied, not symlinked, so tools can modify them)
+  # Activation Scripts
   # =============================================================================
   home.activation = {
-    copyGitconfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      # Copy gitconfig so gh auth setup-git can write to it
-      $DRY_RUN_CMD cp -f ${./dotfiles/gitconfig} $HOME/.gitconfig
-      $DRY_RUN_CMD chmod 644 $HOME/.gitconfig
-    '';
-
     # =========================================================================
     # AI Coding CLIs (installed outside Nix for auto-updates)
     # =========================================================================
     installAiClis = lib.hm.dag.entryAfter ["writeBoundary"] ''
       # Ensure nix-provided tools are in PATH for install scripts
       export PATH="${pkgs.curl}/bin:${pkgs.wget}/bin:${pkgs.coreutils}/bin:$PATH"
-      
+
       # Claude Code (check by file path, not command -v)
       if [ ! -x "$HOME/.local/bin/claude" ]; then
         echo "Installing Claude Code..."
@@ -235,33 +290,29 @@
     '';
 
     # =========================================================================
-    # Writable App Configs (copied so apps can modify them)
+    # Writable App Configs (copy-once - apps write to these files)
     # =========================================================================
-    copyAppConfigs = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      # Claude CLI settings (only copy if not exists - preserves user's accumulated permissions)
+    copyWritableConfigs = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      # Claude CLI settings (writes permissions)
       if [ ! -f "$HOME/.claude/settings.json" ]; then
         $DRY_RUN_CMD mkdir -p "$HOME/.claude"
         $DRY_RUN_CMD cp ${./dotfiles/claude/settings.json} "$HOME/.claude/settings.json"
         $DRY_RUN_CMD chmod 644 "$HOME/.claude/settings.json"
       fi
 
-      # GitHub CLI config (only copy if not exists)
-      if [ ! -f "$HOME/.config/gh/config.yml" ]; then
-        $DRY_RUN_CMD mkdir -p "$HOME/.config/gh"
-        $DRY_RUN_CMD cp ${./dotfiles/gh/config.yml} "$HOME/.config/gh/config.yml"
-        $DRY_RUN_CMD chmod 644 "$HOME/.config/gh/config.yml"
+      # OpenCode config (writes permissions, plugin versions)
+      if [ ! -f "$HOME/.config/opencode/opencode.json" ]; then
+        $DRY_RUN_CMD mkdir -p "$HOME/.config/opencode"
+        $DRY_RUN_CMD cp ${./dotfiles/opencode/opencode.json} "$HOME/.config/opencode/opencode.json"
+        $DRY_RUN_CMD chmod 644 "$HOME/.config/opencode/opencode.json"
       fi
 
-      # Warp launch configurations (only copy if not exists)
-      if [ ! -d "$HOME/.warp/launch_configurations" ]; then
-        $DRY_RUN_CMD mkdir -p "$HOME/.warp/launch_configurations"
+      # OpenChamber config (writes projects, VAPID keys, state)
+      if [ ! -f "$HOME/.config/openchamber/settings.json" ]; then
+        $DRY_RUN_CMD mkdir -p "$HOME/.config/openchamber"
+        $DRY_RUN_CMD cp ${./dotfiles/openchamber/settings.json} "$HOME/.config/openchamber/settings.json"
+        $DRY_RUN_CMD chmod 644 "$HOME/.config/openchamber/settings.json"
       fi
-      for config in ${./dotfiles/warp}/*.yaml; do
-        filename=$(basename "$config")
-        if [ ! -f "$HOME/.warp/launch_configurations/$filename" ]; then
-          $DRY_RUN_CMD cp "$config" "$HOME/.warp/launch_configurations/$filename"
-        fi
-      done
     '';
   };
 }
