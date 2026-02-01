@@ -21,7 +21,7 @@ if [[ -z "$TS_AUTHKEY" ]]; then
   exit 1
 fi
 
-echo "[1/7] Installing Nix..."
+echo "[1/6] Installing Nix..."
 if ! command -v nix &>/dev/null; then
   sh <(curl -L https://nixos.org/nix/install) --daemon
   echo "Nix installed. Please restart your shell and run this script again."
@@ -31,16 +31,7 @@ else
 fi
 
 echo ""
-echo "[2/7] Installing Node.js..."
-if ! command -v node &>/dev/null; then
-  curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-  sudo apt-get install -y nodejs
-else
-  echo "Node.js already installed: $(node --version)"
-fi
-
-echo ""
-echo "[3/7] Installing OpenCode CLI..."
+echo "[2/6] Installing OpenCode CLI..."
 if [[ ! -x "$HOME/.opencode/bin/opencode" ]]; then
   curl -fsSL https://opencode.ai/install | bash
 else
@@ -48,15 +39,7 @@ else
 fi
 
 echo ""
-echo "[4/7] Installing OpenChamber..."
-if ! command -v openchamber &>/dev/null; then
-  npm install -g @openchamber/web
-else
-  echo "OpenChamber already installed: $(openchamber --version 2>/dev/null || echo 'installed')"
-fi
-
-echo ""
-echo "[5/7] Cloning dotfiles..."
+echo "[3/6] Cloning dotfiles..."
 if [[ ! -d "$HOME/dotfiles" ]]; then
   git clone git@github.com:damian-dp/dotfiles.git "$HOME/dotfiles"
 else
@@ -65,7 +48,7 @@ else
 fi
 
 echo ""
-echo "[6/7] Authenticating Tailscale..."
+echo "[4/6] Authenticating Tailscale..."
 if tailscale status &>/dev/null; then
   echo "Tailscale already authenticated."
 else
@@ -74,8 +57,25 @@ else
 fi
 
 echo ""
-echo "[7/7] Applying home-manager config..."
+echo "[5/6] Setting up OpenCode server password..."
+CREDS_DIR="$HOME/.config/opencode/credentials"
+if [[ ! -f "$CREDS_DIR/server_password" ]]; then
+  mkdir -p "$CREDS_DIR"
+  read -sp "Enter password for OpenCode server: " OC_PASSWORD
+  echo ""
+  echo "$OC_PASSWORD" > "$CREDS_DIR/server_password"
+  chmod 600 "$CREDS_DIR/server_password"
+  echo "Password saved."
+else
+  echo "Password already configured."
+fi
+
+echo ""
+echo "[6/6] Applying home-manager config..."
 nix run home-manager -- switch --flake "$HOME/dotfiles#damian@linux"
+
+# Enable lingering so services run without login
+loginctl enable-linger "$USER"
 
 echo ""
 echo "=== Verifying setup ==="
@@ -86,11 +86,10 @@ echo "Tailscale hostname: $TS_HOSTNAME"
 echo ""
 echo "=== Setup Complete ==="
 echo ""
-echo "OpenChamber will start automatically on next login."
-echo "Or start now with: systemctl --user start openchamber"
+echo "Start OpenCode server now with:"
+echo "  systemctl --user start opencode"
 echo ""
-echo "Access from:"
-echo "  - Web UI: https://$TS_HOSTNAME"
-echo "  - Mac:    open https://$TS_HOSTNAME"
+echo "Access from your Mac (via Tailscale):"
+echo "  http://$TS_HOSTNAME:4096"
 echo ""
-echo "For TUI mode, SSH in and run: opencode"
+echo "For local TUI mode, SSH in and run: opencode"

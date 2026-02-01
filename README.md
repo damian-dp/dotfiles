@@ -85,10 +85,8 @@ dotfiles/
 │       ├── ghostty.conf      # Terminal config
 │       ├── tmux.conf         # Tmux config
 │       ├── shell/
-│       │   ├── commit.sh     # Claude-powered commit messages
-│       │   └── opencode.sh   # OpenCode wrapper
+│       │   └── commit.sh     # Claude-powered commit messages
 │       ├── opencode/         # OpenCode config files
-│       ├── openchamber/      # OpenChamber config (copy-once)
 │       ├── warp/             # Warp terminal configs
 │       └── claude/           # Claude CLI config
 │
@@ -159,7 +157,6 @@ Three approaches are used depending on whether apps need to write to their confi
 | Claude `CLAUDE.md` | symlink | `home/dotfiles/claude/CLAUDE.md` | Instructions only |
 | Claude `settings.json` | copy-once | `home/dotfiles/claude/settings.json` | Writes permissions |
 | OpenCode | copy-once | `home/dotfiles/opencode/opencode.json` | Writes permissions |
-| OpenChamber | copy-once | `home/dotfiles/openchamber/settings.json` | Writes projects, VAPID keys |
 
 ## Secrets
 

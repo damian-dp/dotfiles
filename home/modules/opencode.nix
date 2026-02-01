@@ -8,18 +8,12 @@ in
 {
   options.services.opencode = {
     server = {
-      enable = mkEnableOption "OpenChamber web server with Tailscale";
-      
+      enable = mkEnableOption "OpenCode server";
+
       port = mkOption {
         type = types.int;
-        default = 3000;
-        description = "Port for the OpenChamber web server";
-      };
-      
-      password = mkOption {
-        type = types.nullOr types.str;
-        default = null;
-        description = "Optional password to protect the web UI";
+        default = 4096;
+        description = "Port for the OpenCode server";
       };
     };
   };
@@ -27,28 +21,23 @@ in
   config = mkMerge [
     (mkIf (pkgs.stdenv.isLinux && cfg.server.enable) {
       systemd.user.startServices = "sd-switch";
-      
-      systemd.user.services.openchamber = {
+
+      # OpenCode server - password loaded from credentials file
+      # Create password: mkdir -p ~/.config/opencode/credentials && echo "your-password" > ~/.config/opencode/credentials/server_password
+      systemd.user.services.opencode = {
         Unit = {
-          Description = "OpenChamber Web Server";
-          After = [ "network-online.target" ];
-          Wants = [ "network-online.target" ];
+          Description = "OpenCode Server";
         };
 
         Service = {
           Type = "simple";
-          ExecStart = let
-            passwordFlag = if cfg.server.password != null 
-              then "--ui-password ${cfg.server.password}" 
-              else "";
-          in "%h/.local/bin/openchamber --port ${toString cfg.server.port} ${passwordFlag}";
-          ExecStartPost = "${pkgs.bash}/bin/bash -c 'sleep 10 && ${pkgs.tailscale}/bin/tailscale serve --bg --https=443 http://localhost:${toString cfg.server.port}'";
-          ExecStopPost = "${pkgs.tailscale}/bin/tailscale serve --https=443 off";
-          Restart = "always";
-          RestartSec = "10";
+          ExecStart = "/bin/sh -c 'OPENCODE_SERVER_PASSWORD=$(cat \"$CREDENTIALS_DIRECTORY/opencode_password\") exec %h/.opencode/bin/opencode serve --hostname 0.0.0.0 --port ${toString cfg.server.port}'";
+          LoadCredential = "opencode_password:%h/.config/opencode/credentials/server_password";
+          Restart = "on-failure";
+          RestartSec = "5";
           Environment = [
             "HOME=%h"
-            "PATH=%h/.local/bin:%h/.opencode/bin:%h/.nvm/versions/node/v22.16.0/bin:${pkgs.coreutils}/bin:${pkgs.bash}/bin:${pkgs.nodejs}/bin:/usr/bin:/bin"
+            "PATH=%h/.opencode/bin:%h/.bun/bin:%h/.local/bin:${pkgs.coreutils}/bin:${pkgs.bash}/bin:/usr/bin:/bin"
           ];
         };
 
@@ -58,9 +47,7 @@ in
       };
 
       home.packages = with pkgs; [
-        tailscale
         jq
-        nodejs
       ];
     })
   ];

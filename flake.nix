@@ -24,17 +24,13 @@
       # Linux VM (OpenCode Server)
       # =======================================================================
       # Usage: nix run home-manager -- switch --flake .#damian@linux
-      # 
-      # This config enables:
-      #   - OpenCode web server (auto-starts via systemd)
-      #   - Tailscale serve (exposes server securely)
       #
-      # First-time setup on VM:
-      #   1. Install nix: sh <(curl -L https://nixos.org/nix/install) --daemon
-      #   2. Clone dotfiles: git clone <repo> ~/dotfiles
-      #   3. Apply: nix run home-manager -- switch --flake ~/dotfiles#damian@linux
-      #   4. Auth tailscale: tailscale up
-      #   5. Server auto-starts on next login
+      # This config enables:
+      #   - OpenCode server (systemd service on port 4096)
+      #   - Access via Tailscale: http://<tailscale-hostname>:4096
+      #
+      # First-time setup: run bootstrap-vm.sh with TS_AUTHKEY set
+      # Password stored in: ~/.config/opencode/credentials/server_password
       #
       homeConfigurations = {
         "damian@linux" = home-manager.lib.homeManagerConfiguration {
