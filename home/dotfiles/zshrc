@@ -104,9 +104,6 @@ alias tn="tmux new -s"
 # commit() - Claude-powered commit message generator
 [[ -f "$HOME/.config/shell/commit.sh" ]] && source "$HOME/.config/shell/commit.sh"
 
-# opencode() - OpenCode wrapper with Tailscale serve + notifications
-[[ -f "$HOME/.config/shell/opencode.sh" ]] && source "$HOME/.config/shell/opencode.sh"
-
 # =============================================================================
 # Powerlevel10k Config
 # =============================================================================

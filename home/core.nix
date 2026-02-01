@@ -66,9 +66,8 @@
     ".config/opencode/oh-my-opencode.json".source = ./dotfiles/opencode/oh-my-opencode.json;
     ".config/opencode/package.json".source = ./dotfiles/opencode/package.json;
 
-    # Shell functions (commit, opencode wrapper)
+    # Shell functions
     ".config/shell/commit.sh".source = ./dotfiles/shell/commit.sh;
-    ".config/shell/opencode.sh".source = ./dotfiles/shell/opencode.sh;
 
     # Claude CLI - CLAUDE.md symlinked (instructions only, never written)
     ".claude/CLAUDE.md".source = ./dotfiles/claude/CLAUDE.md;
@@ -307,12 +306,6 @@
         $DRY_RUN_CMD chmod 644 "$HOME/.config/opencode/opencode.json"
       fi
 
-      # OpenChamber config (writes projects, VAPID keys, state)
-      if [ ! -f "$HOME/.config/openchamber/settings.json" ]; then
-        $DRY_RUN_CMD mkdir -p "$HOME/.config/openchamber"
-        $DRY_RUN_CMD cp ${./dotfiles/openchamber/settings.json} "$HOME/.config/openchamber/settings.json"
-        $DRY_RUN_CMD chmod 644 "$HOME/.config/openchamber/settings.json"
-      fi
     '';
   };
 }
