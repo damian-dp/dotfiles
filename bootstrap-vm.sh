@@ -220,15 +220,16 @@ echo "[8/8] Applying home-manager config..."
 
 nix run home-manager -- switch -b backup --flake "$HOME/dotfiles#damian@linux"
 
-# Authenticate Vercel CLI (token from 1Password)
-if command -v vercel &>/dev/null || [ -x "$HOME/.bun/bin/vercel" ]; then
-  VERCEL_BIN="${HOME}/.bun/bin/vercel"
-  if ! "$VERCEL_BIN" whoami &>/dev/null 2>&1; then
-    VERCEL_TOKEN=$(op read "op://VM/VERCEL_TOKEN/token")
-    "$VERCEL_BIN" login --token="$VERCEL_TOKEN"
-    echo "Vercel CLI authenticated."
-  else
-    echo "Vercel CLI already authenticated."
+# Verify Vercel CLI access (uses VERCEL_TOKEN env var, no login needed)
+if [ -x "$HOME/.bun/bin/vercel" ]; then
+  VERCEL_TOKEN_VAL=$(op read "op://VM/VERCEL_TOKEN/token" 2>/dev/null)
+  if [[ -n "$VERCEL_TOKEN_VAL" ]]; then
+    VERCEL_USER=$(VERCEL_TOKEN="$VERCEL_TOKEN_VAL" "$HOME/.bun/bin/vercel" whoami 2>/dev/null)
+    if [[ -n "$VERCEL_USER" ]]; then
+      echo "Vercel CLI authenticated as: $VERCEL_USER"
+    else
+      echo "WARNING: Vercel token found but authentication failed. Check VERCEL_TOKEN in 1Password."
+    fi
   fi
 fi
 
