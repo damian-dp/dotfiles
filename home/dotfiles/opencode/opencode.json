@@ -167,17 +167,12 @@
   "mcp": {
     "deep-wiki": {
       "type": "remote",
-      "url": "https://mcp.deepwiki.com/sse",
+      "url": "https://mcp.deepwiki.com/mcp",
       "enabled": true
     },
     "cubitt": {
-      "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "mcp-remote",
-        "https://cubitt-docs.vercel.app/mcp"
-      ],
+      "type": "remote",
+      "url": "https://cubitt-docs.vercel.app/mcp",
       "enabled": true
     }
   },
