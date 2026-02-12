@@ -71,9 +71,13 @@
     # Shell functions
     ".config/shell/commit.sh".source = ./dotfiles/shell/commit.sh;
 
-    # Vercel CLI wrapper (injects 1Password token on headless VMs)
+    # CLI wrappers for headless VMs (inject 1Password tokens)
     ".local/bin/vercel" = {
       source = ./dotfiles/shell/vercel-wrapper.sh;
+      executable = true;
+    };
+    ".local/bin/pnpm" = {
+      source = ./dotfiles/shell/pnpm-wrapper.sh;
       executable = true;
     };
 
@@ -227,14 +231,6 @@
       # If running interactively and zsh is available, switch to it
       if [[ $- == *i* ]] && command -v zsh &>/dev/null; then
         exec zsh
-      fi
-
-      # 1Password secrets for non-interactive bash (scripts, tools like pnpm)
-      if [[ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]] && [[ -f "$HOME/.config/op/service-account-token" ]]; then
-        export OP_SERVICE_ACCOUNT_TOKEN=$(cat "$HOME/.config/op/service-account-token")
-      fi
-      if [[ -n "$OP_SERVICE_ACCOUNT_TOKEN" ]] && [[ -z "$GH_NPM_TOKEN" ]]; then
-        export GH_NPM_TOKEN=$(op read "op://VM/GH_MASTER_PAT/token" 2>/dev/null)
       fi
     '';
   };

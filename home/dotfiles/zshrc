@@ -40,14 +40,9 @@ export NVM_DIR="$HOME/.nvm"
 [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
 [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
 
-# GitHub NPM token (for private @tilt-legal packages)
-if [[ -n "$OP_SERVICE_ACCOUNT_TOKEN" ]]; then
-  # VM: auto-export from 1Password service account
-  if [[ -z "$GH_NPM_TOKEN" ]]; then
-    export GH_NPM_TOKEN=$(op read "op://VM/GH_MASTER_PAT/token" 2>/dev/null)
-  fi
-else
-  # macOS: lazy-load via function (requires 1Password desktop app)
+# GitHub NPM token (macOS only - lazy-load via function)
+# VM uses pnpm wrapper at ~/.local/bin/pnpm instead (no shell startup delay)
+if [[ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]]; then
   gh_npm_token() {
     if [[ -z "$GH_NPM_TOKEN" ]]; then
       export GH_NPM_TOKEN=$(/opt/homebrew/bin/op read "op://Employee/4xwfq5opt6k5e6vlpskxpn5vaa/token" 2>/dev/null)
