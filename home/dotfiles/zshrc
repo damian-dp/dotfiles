@@ -87,7 +87,7 @@ fi
 # opencode
 export OPENCODE_EXPERIMENTAL="true"
 [[ -d "$HOME/.opencode/bin" ]] && export PATH="$HOME/.opencode/bin:$PATH"
-OPENCODE_VM_URL="http://dev-vm-damian.taild53693.ts.net:4096"
+OPENCODE_VM_URL="http://vm:4096"
 opencode() {
   if [[ "$1" == "local" ]]; then
     shift
