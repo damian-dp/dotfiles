@@ -33,16 +33,6 @@ if [[ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]] && [[ -f "$HOME/.config/op/service-accou
   export OP_SERVICE_ACCOUNT_TOKEN=$(cat "$HOME/.config/op/service-account-token")
 fi
 
-# Vercel CLI (headless VMs - auto-injects token from 1Password)
-if [[ -n "$OP_SERVICE_ACCOUNT_TOKEN" ]]; then
-  vercel() {
-    if [[ -z "$VERCEL_TOKEN" ]]; then
-      export VERCEL_TOKEN=$(op read "op://VM/VERCEL_TOKEN/token" 2>/dev/null)
-    fi
-    command vercel --token="$VERCEL_TOKEN" "$@"
-  }
-fi
-
 # =============================================================================
 # Node.js (NVM)
 # =============================================================================

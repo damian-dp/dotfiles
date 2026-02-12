@@ -70,6 +70,12 @@
     # Shell functions
     ".config/shell/commit.sh".source = ./dotfiles/shell/commit.sh;
 
+    # Vercel CLI wrapper (injects 1Password token on headless VMs)
+    ".local/bin/vercel" = {
+      source = ./dotfiles/shell/vercel-wrapper.sh;
+      executable = true;
+    };
+
     # Claude CLI - CLAUDE.md symlinked (instructions only, never written)
     ".claude/CLAUDE.md".source = ./dotfiles/claude/CLAUDE.md;
     # Note: settings.json is copy-once (see activation script) because Claude writes permissions to it
