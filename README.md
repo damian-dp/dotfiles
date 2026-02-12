@@ -33,6 +33,9 @@ The bootstrap script sets up a fresh VM as a remote dev environment with OpenCod
 **On the fresh VM:**
 
 ```bash
+sudo apt update && sudo apt upgrade -y && sudo reboot
+# SSH back in after reboot
+
 git clone https://github.com/damian-dp/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 OP_SERVICE_ACCOUNT_TOKEN='ops_...' ./bootstrap-vm.sh
@@ -44,6 +47,8 @@ The script will pause after installing Nix to restart your shell. Run it again t
 source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
 OP_SERVICE_ACCOUNT_TOKEN='ops_...' ./bootstrap-vm.sh
 ```
+
+The service account token is saved to `~/.config/op/service-account-token` on first run. You won't need to provide it again — subsequent runs of the bootstrap script and all shell sessions automatically load it.
 
 After completion, access OpenCode from any Tailscale device:
 - **Browser (phone/laptop):** `http://<tailscale-hostname>:4096`
@@ -118,7 +123,7 @@ dotfiles/
 - **Shell**: zsh + oh-my-zsh + Powerlevel10k
 - **Tools**: git, gh, ripgrep, fd, fzf, eza, zoxide, delta, lazygit, jq, htop, btop, tmux, direnv
 - **Python**: uv (fast Python package manager)
-- **JS**: Bun (runtime + package manager), Turborepo (via Bun)
+- **JS**: Bun (runtime + package manager), Turborepo, Vercel CLI (via Bun)
 - **Network**: tailscale
 - **AI**: Claude Code, OpenCode, Codex (installed outside Nix for auto-updates)
 - **Git**: SSH commit signing via 1Password
@@ -141,9 +146,23 @@ dotfiles/
 
 | Method | Description | Use Case |
 |--------|-------------|----------|
-| **Nix module** | Declarative config in `.nix` files | Apps with home-manager modules (git, gh, zed) |
+| **Nix module** | Declarative config in `.nix` files | Apps with home-manager modules (git, zed) |
 | **Symlink** | Read-only link to nix store | Configs that don't change (keybindings, themes) |
 | **Copy-once** | Copied on first run, then writable | Apps that write state/permissions to config |
+
+## 1Password Secrets (VM)
+
+The VM uses a 1Password **Service Account** scoped to the VM vault only (no access to personal or other vaults). The bootstrap script pulls secrets once and persists them locally:
+
+| Secret | 1Password Item | Stored On Disk |
+|--------|---------------|----------------|
+| Service account token | (provided manually once) | `~/.config/op/service-account-token` |
+| Tailscale auth key | `TS_AUTH_KEY` | Not persisted (used once) |
+| SSH signing key | `GH_SSH_KEY` | `~/.ssh/id_ed25519_signing` |
+| GitHub PAT | `GH_MASTER_PAT` | `~/.config/gh/hosts.yml` (via `gh auth`) |
+| Vercel token | `VERCEL_TOKEN` | `~/.config/vercel/auth.json` (via `vercel login`) |
+
+The service account token is auto-loaded in every shell session via zshrc, so `op read "op://VM/..."` works anytime without re-authenticating.
 
 ## Git Commit Signing
 
