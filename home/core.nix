@@ -44,6 +44,9 @@
     nodejs
     pnpm
 
+    # Web servers / reverse proxies
+    caddy
+
     # Networking
     tailscale
     # Note: mosh installed via apt in bootstrap.sh (needs to be in system PATH for mosh-server)
