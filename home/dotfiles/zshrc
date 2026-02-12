@@ -44,7 +44,7 @@ export NVM_DIR="$HOME/.nvm"
 if [[ -n "$OP_SERVICE_ACCOUNT_TOKEN" ]]; then
   # VM: auto-export from 1Password service account
   if [[ -z "$GH_NPM_TOKEN" ]]; then
-    export GH_NPM_TOKEN=$(op read "op://VM/GH_NPM_TOKEN/token" 2>/dev/null)
+    export GH_NPM_TOKEN=$(op read "op://VM/GH_MASTER_PAT/token" 2>/dev/null)
   fi
 else
   # macOS: lazy-load via function (requires 1Password desktop app)
