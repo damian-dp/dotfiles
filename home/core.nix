@@ -224,17 +224,17 @@
   programs.bash = {
     enable = true;
     initExtra = ''
-      # 1Password secrets for headless VMs (same as zshrc)
+      # If running interactively and zsh is available, switch to it
+      if [[ $- == *i* ]] && command -v zsh &>/dev/null; then
+        exec zsh
+      fi
+
+      # 1Password secrets for non-interactive bash (scripts, tools like pnpm)
       if [[ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]] && [[ -f "$HOME/.config/op/service-account-token" ]]; then
         export OP_SERVICE_ACCOUNT_TOKEN=$(cat "$HOME/.config/op/service-account-token")
       fi
       if [[ -n "$OP_SERVICE_ACCOUNT_TOKEN" ]] && [[ -z "$GH_NPM_TOKEN" ]]; then
         export GH_NPM_TOKEN=$(op read "op://VM/GH_MASTER_PAT/token" 2>/dev/null)
-      fi
-
-      # If running interactively and zsh is available, switch to it
-      if [[ $- == *i* ]] && command -v zsh &>/dev/null; then
-        exec zsh
       fi
     '';
   };
