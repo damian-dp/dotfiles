@@ -250,11 +250,15 @@
         $DRY_RUN_CMD ${pkgs.curl}/bin/curl -fsSL https://bun.sh/install | $DRY_RUN_CMD bash
       fi
 
-      # Turborepo (installed via bun)
+      # Global tools (installed via bun)
       if [ -x "$HOME/.bun/bin/bun" ]; then
         if ! "$HOME/.bun/bin/bun" pm ls -g 2>/dev/null | grep -q "turbo@"; then
           echo "Installing Turborepo..."
           $DRY_RUN_CMD "$HOME/.bun/bin/bun" add -g turbo
+        fi
+        if ! "$HOME/.bun/bin/bun" pm ls -g 2>/dev/null | grep -q "vercel@"; then
+          echo "Installing Vercel CLI..."
+          $DRY_RUN_CMD "$HOME/.bun/bin/bun" add -g vercel
         fi
       fi
 
