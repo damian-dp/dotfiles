@@ -15,8 +15,14 @@ if [[ -n "$OP_SERVICE_ACCOUNT_TOKEN" ]] && [[ -z "$VERCEL_TOKEN" ]]; then
   VERCEL_TOKEN=$(op read "op://VM/VERCEL_TOKEN/token" 2>/dev/null)
 fi
 
+# Default scope to tilt-legal (override with --scope)
+SCOPE_ARGS=()
+if [[ "$*" != *"--scope"* ]]; then
+  SCOPE_ARGS=(--scope tilt-legal)
+fi
+
 if [[ -n "$VERCEL_TOKEN" ]]; then
-  exec "$HOME/.bun/bin/vercel" "$@" --token="$VERCEL_TOKEN"
+  exec "$HOME/.bun/bin/vercel" "$@" --token="$VERCEL_TOKEN" "${SCOPE_ARGS[@]}"
 else
-  exec "$HOME/.bun/bin/vercel" "$@"
+  exec "$HOME/.bun/bin/vercel" "$@" "${SCOPE_ARGS[@]}"
 fi
