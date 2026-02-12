@@ -33,9 +33,9 @@ if [[ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]] && [[ -f "$HOME/.config/op/service-accou
   export OP_SERVICE_ACCOUNT_TOKEN=$(cat "$HOME/.config/op/service-account-token")
 fi
 
-# Vercel token (headless VMs - loaded from 1Password on demand)
-if [[ -n "$OP_SERVICE_ACCOUNT_TOKEN" ]] && [[ -z "$VERCEL_TOKEN" ]]; then
-  export VERCEL_TOKEN=$(op read "op://VM/VERCEL_TOKEN/token" 2>/dev/null)
+# Vercel token (headless VMs - saved by bootstrap-vm.sh)
+if [[ -z "$VERCEL_TOKEN" ]] && [[ -f "$HOME/.config/vercel/token" ]]; then
+  export VERCEL_TOKEN=$(cat "$HOME/.config/vercel/token")
 fi
 
 # =============================================================================

@@ -220,16 +220,26 @@ echo "[8/8] Applying home-manager config..."
 
 nix run home-manager -- switch -b backup --flake "$HOME/dotfiles#damian@linux"
 
-# Verify Vercel CLI access (uses VERCEL_TOKEN env var, no login needed)
-if [ -x "$HOME/.bun/bin/vercel" ]; then
+# Save Vercel token from 1Password to disk
+VERCEL_TOKEN_FILE="$HOME/.config/vercel/token"
+if [[ ! -f "$VERCEL_TOKEN_FILE" ]]; then
   VERCEL_TOKEN_VAL=$(op read "op://VM/VERCEL_TOKEN/token" 2>/dev/null)
   if [[ -n "$VERCEL_TOKEN_VAL" ]]; then
-    VERCEL_USER=$(VERCEL_TOKEN="$VERCEL_TOKEN_VAL" "$HOME/.bun/bin/vercel" whoami 2>/dev/null)
-    if [[ -n "$VERCEL_USER" ]]; then
-      echo "Vercel CLI authenticated as: $VERCEL_USER"
-    else
-      echo "WARNING: Vercel token found but authentication failed. Check VERCEL_TOKEN in 1Password."
-    fi
+    mkdir -p "$(dirname "$VERCEL_TOKEN_FILE")"
+    echo "$VERCEL_TOKEN_VAL" > "$VERCEL_TOKEN_FILE"
+    chmod 600 "$VERCEL_TOKEN_FILE"
+    echo "Vercel token saved to $VERCEL_TOKEN_FILE"
+  fi
+fi
+
+# Verify Vercel CLI access
+if [ -x "$HOME/.bun/bin/vercel" ] && [[ -f "$VERCEL_TOKEN_FILE" ]]; then
+  export VERCEL_TOKEN=$(cat "$VERCEL_TOKEN_FILE")
+  VERCEL_USER=$("$HOME/.bun/bin/vercel" whoami 2>/dev/null)
+  if [[ -n "$VERCEL_USER" ]]; then
+    echo "Vercel CLI authenticated as: $VERCEL_USER"
+  else
+    echo "WARNING: Vercel token saved but authentication failed. Check VERCEL_TOKEN in 1Password."
   fi
 fi
 
