@@ -2,3 +2,8 @@
 # Key is stored at ~/.ssh/id_ed25519_signing
 [user]
 	signingkey = ~/.ssh/id_ed25519_signing.pub
+
+# Rewrite HTTPS GitHub URLs to SSH (tools that clone via HTTPS
+# will automatically use SSH auth instead)
+[url "git@github.com:"]
+	insteadOf = https://github.com/
