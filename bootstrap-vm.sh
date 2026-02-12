@@ -52,7 +52,7 @@ export OP_SERVICE_ACCOUNT_TOKEN
 # -----------------------------------------------------------------------------
 echo "[1/8] Installing prerequisites..."
 NEEDS_INSTALL=()
-for cmd in git curl jq; do
+for cmd in git curl jq tar; do
   if ! command -v "$cmd" &>/dev/null; then
     NEEDS_INSTALL+=("$cmd")
   fi
@@ -136,6 +136,13 @@ else
   echo "Nix already installed."
 fi
 
+# Ensure flakes and nix-command are enabled
+if ! grep -q "experimental-features" /etc/nix/nix.conf 2>/dev/null; then
+  echo "experimental-features = nix-command flakes" | sudo tee -a /etc/nix/nix.conf >/dev/null
+  sudo systemctl restart nix-daemon
+  echo "Enabled flakes and nix-command."
+fi
+
 # -----------------------------------------------------------------------------
 # [6/8] Clone dotfiles + authenticate GitHub
 # -----------------------------------------------------------------------------
@@ -198,7 +205,8 @@ git -C "$HOME/dotfiles" remote set-url origin git@github.com:damian-dp/dotfiles.
 # -----------------------------------------------------------------------------
 echo ""
 echo "[8/8] Applying home-manager config..."
-nix run home-manager -- switch --flake "$HOME/dotfiles#damian@linux"
+
+nix run home-manager -- switch -b backup --flake "$HOME/dotfiles#damian@linux"
 
 # Enable lingering so systemd user services run without an active login session
 loginctl enable-linger "$USER"

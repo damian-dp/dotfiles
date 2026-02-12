@@ -19,7 +19,7 @@
   home.packages = with pkgs; [
     # Core CLI tools
     git
-    # gh is managed via programs.gh below
+    gh
     curl
     wget
     htop
@@ -181,28 +181,7 @@
     ];
   };
 
-  # =============================================================================
-  # GitHub CLI (using built-in module - writes auth to hosts.yml, not config.yml)
-  # =============================================================================
-  programs.gh = {
-    enable = true;
-    settings = {
-      version = 1;
-      git_protocol = "https";
-      prompt = "enabled";
-      prefer_editor_prompt = "disabled";
-      pager = "";
-      aliases = {
-        co = "pr checkout";
-      };
-      http_unix_socket = "";
-      browser = "";
-      color_labels = "disabled";
-      accessible_colors = "disabled";
-      accessible_prompter = "disabled";
-      spinner = "enabled";
-    };
-  };
+  # GitHub CLI (installed via packages, config managed by gh itself)
 
   # =============================================================================
   # Session Variables
