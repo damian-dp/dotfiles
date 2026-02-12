@@ -36,6 +36,13 @@ if [[ $EUID -eq 0 ]]; then
   exit 1
 fi
 
+OP_TOKEN_FILE="$HOME/.config/op/service-account-token"
+
+# Load token from disk if not provided via env
+if [[ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]] && [[ -f "$OP_TOKEN_FILE" ]]; then
+  OP_SERVICE_ACCOUNT_TOKEN=$(cat "$OP_TOKEN_FILE")
+fi
+
 if [[ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]]; then
   echo "OP_SERVICE_ACCOUNT_TOKEN not set."
   echo ""
@@ -46,6 +53,14 @@ if [[ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]]; then
 fi
 
 export OP_SERVICE_ACCOUNT_TOKEN
+
+# Persist token to disk for future use (shell, scripts, etc.)
+if [[ ! -f "$OP_TOKEN_FILE" ]]; then
+  mkdir -p "$(dirname "$OP_TOKEN_FILE")"
+  echo "$OP_SERVICE_ACCOUNT_TOKEN" > "$OP_TOKEN_FILE"
+  chmod 600 "$OP_TOKEN_FILE"
+  echo "Service account token saved to $OP_TOKEN_FILE"
+fi
 
 # -----------------------------------------------------------------------------
 # [1/8] Install prerequisites
