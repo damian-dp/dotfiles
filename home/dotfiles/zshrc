@@ -113,7 +113,7 @@ alias tn="tmux new -s"
 # dotfiles-sync - copy live writable configs back to dotfiles repo
 # These are copy-once files that apps write to at runtime
 dotfiles-sync() {
-  local dotfiles="${DOTFILES:-$HOME/dotfiles}"
+  local dotfiles="${DOTFILES:-$HOME/code/dotfiles}"
   if [[ ! -d "$dotfiles" ]]; then
     echo "Dotfiles repo not found at $dotfiles"
     echo "Set DOTFILES env var to override."

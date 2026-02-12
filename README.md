@@ -36,8 +36,8 @@ The bootstrap script sets up a fresh VM as a remote dev environment with OpenCod
 sudo apt update && sudo apt upgrade -y && sudo reboot
 # SSH back in after reboot
 
-git clone https://github.com/damian-dp/dotfiles.git ~/dotfiles
-cd ~/dotfiles
+git clone https://github.com/damian-dp/dotfiles.git ~/code/dotfiles
+cd ~/code/dotfiles
 OP_SERVICE_ACCOUNT_TOKEN='ops_...' ./bootstrap-vm.sh
 ```
 
@@ -57,15 +57,15 @@ After completion, access OpenCode from any Tailscale device:
 ### New macOS Workstation
 
 ```bash
-git clone https://github.com/damian-dp/dotfiles.git ~/dotfiles
-cd ~/dotfiles
+git clone https://github.com/damian-dp/dotfiles.git ~/code/dotfiles
+cd ~/code/dotfiles
 nix run nix-darwin -- switch --flake .#Damian-MBP
 ```
 
 ### Updating
 
 ```bash
-cd ~/dotfiles
+cd ~/code/dotfiles
 git pull
 
 # Linux
@@ -217,7 +217,7 @@ For commits to show as "Verified" on GitHub:
 ## Updating Nix Packages
 
 ```bash
-cd ~/dotfiles
+cd ~/code/dotfiles
 nix flake update
 darwin-rebuild switch --flake .#Damian-MBP  # or home-manager for Linux
 ```

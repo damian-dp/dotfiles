@@ -63,9 +63,9 @@ if [[ ! -f "$OP_TOKEN_FILE" ]]; then
 fi
 
 # -----------------------------------------------------------------------------
-# [1/8] Install prerequisites
+# [1/9] Install prerequisites
 # -----------------------------------------------------------------------------
-echo "[1/8] Installing prerequisites..."
+echo "[1/9] Installing prerequisites..."
 NEEDS_INSTALL=()
 for cmd in git curl jq tar; do
   if ! command -v "$cmd" &>/dev/null; then
@@ -82,10 +82,10 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# [2/8] Install 1Password CLI
+# [2/9] Install 1Password CLI
 # -----------------------------------------------------------------------------
 echo ""
-echo "[2/8] Installing 1Password CLI..."
+echo "[2/9] Installing 1Password CLI..."
 if ! command -v op &>/dev/null; then
   curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
     sudo gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg
@@ -105,10 +105,10 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# [3/8] Verify 1Password authentication
+# [3/9] Verify 1Password authentication
 # -----------------------------------------------------------------------------
 echo ""
-echo "[3/8] Verifying 1Password service account..."
+echo "[3/9] Verifying 1Password service account..."
 if ! op vault list --format=json 2>/dev/null | jq -e '.[] | select(.name == "VM")' >/dev/null 2>&1; then
   echo "ERROR: Cannot access 'VM' vault. Check your service account token and vault permissions."
   exit 1
@@ -116,10 +116,10 @@ fi
 echo "Authenticated. VM vault accessible."
 
 # -----------------------------------------------------------------------------
-# [4/8] Install Tailscale + authenticate
+# [4/9] Install Tailscale + authenticate
 # -----------------------------------------------------------------------------
 echo ""
-echo "[4/8] Setting up Tailscale..."
+echo "[4/9] Setting up Tailscale..."
 if ! command -v tailscale &>/dev/null; then
   curl -fsSL https://tailscale.com/install.sh | sh
   echo "Tailscale installed."
@@ -136,10 +136,10 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# [5/8] Install Nix
+# [5/9] Install Nix
 # -----------------------------------------------------------------------------
 echo ""
-echo "[5/8] Installing Nix..."
+echo "[5/9] Installing Nix..."
 if ! command -v nix &>/dev/null; then
   sh <(curl -L https://nixos.org/nix/install) --daemon
   echo ""
@@ -159,10 +159,10 @@ if ! grep -q "experimental-features" /etc/nix/nix.conf 2>/dev/null; then
 fi
 
 # -----------------------------------------------------------------------------
-# [6/8] Clone dotfiles + authenticate GitHub
+# [6/9] Clone dotfiles + authenticate GitHub
 # -----------------------------------------------------------------------------
 echo ""
-echo "[6/8] Setting up GitHub + cloning dotfiles..."
+echo "[6/9] Setting up GitHub + cloning dotfiles..."
 
 # Use gh via nix run (avoids nix profile conflict with home-manager)
 GH_CMD="nix run nixpkgs#gh --"
@@ -179,19 +179,19 @@ fi
 # Configure git to use gh for HTTPS auth
 $GH_CMD auth setup-git
 
-if [[ ! -d "$HOME/dotfiles" ]]; then
-  git clone https://github.com/damian-dp/dotfiles.git "$HOME/dotfiles"
+if [[ ! -d "$HOME/code/dotfiles" ]]; then
+  git clone https://github.com/damian-dp/dotfiles.git "$HOME/code/dotfiles"
   echo "Dotfiles cloned."
 else
   echo "Dotfiles already cloned. Pulling latest..."
-  git -C "$HOME/dotfiles" pull
+  git -C "$HOME/code/dotfiles" pull
 fi
 
 # -----------------------------------------------------------------------------
-# [7/8] Set up SSH key (for GitHub SSH + git commit signing)
+# [7/9] Set up SSH key (for GitHub SSH + git commit signing)
 # -----------------------------------------------------------------------------
 echo ""
-echo "[7/8] Setting up SSH key..."
+echo "[7/9] Setting up SSH key..."
 SSH_KEY="$HOME/.ssh/id_ed25519_signing"
 if [[ ! -f "$SSH_KEY" ]]; then
   mkdir -p "$HOME/.ssh"
@@ -210,15 +210,15 @@ eval "$(ssh-agent -s)" >/dev/null 2>&1
 ssh-add "$SSH_KEY" 2>/dev/null
 
 # Switch dotfiles remote to SSH now that key is available
-git -C "$HOME/dotfiles" remote set-url origin git@github.com:damian-dp/dotfiles.git 2>/dev/null || true
+git -C "$HOME/code/dotfiles" remote set-url origin git@github.com:damian-dp/dotfiles.git 2>/dev/null || true
 
 # -----------------------------------------------------------------------------
-# [8/8] Apply home-manager config
+# [8/9] Apply home-manager config
 # -----------------------------------------------------------------------------
 echo ""
-echo "[8/8] Applying home-manager config..."
+echo "[8/9] Applying home-manager config..."
 
-nix run home-manager -- switch -b backup --flake "$HOME/dotfiles#damian@linux"
+nix run home-manager -- switch -b backup --flake "$HOME/code/dotfiles#damian@linux"
 
 # Verify Vercel CLI access (token loaded from 1Password on demand via zshrc wrapper)
 if [ -x "$HOME/.bun/bin/vercel" ]; then
@@ -234,6 +234,23 @@ if [ -x "$HOME/.bun/bin/vercel" ]; then
     fi
   fi
 fi
+
+# -----------------------------------------------------------------------------
+# [9/9] Clone project repos
+# -----------------------------------------------------------------------------
+echo ""
+echo "[9/9] Cloning project repos..."
+mkdir -p "$HOME/code/tilt"
+
+for repo in TILT-Legal/Mobius TILT-Legal/Cubitt; do
+  repo_name="${repo##*/}"
+  if [[ ! -d "$HOME/code/tilt/$repo_name" ]]; then
+    git clone "git@github.com:$repo.git" "$HOME/code/tilt/$repo_name"
+    echo "Cloned $repo_name."
+  else
+    echo "$repo_name already cloned."
+  fi
+done
 
 # Enable lingering so systemd user services run without an active login session
 loginctl enable-linger "$USER"
