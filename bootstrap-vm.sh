@@ -149,23 +149,20 @@ fi
 echo ""
 echo "[6/8] Setting up GitHub + cloning dotfiles..."
 
-# Install gh CLI if not present (via nix for immediate use)
-if ! command -v gh &>/dev/null; then
-  echo "Installing GitHub CLI..."
-  nix profile install nixpkgs#gh
-fi
+# Use gh via nix run (avoids nix profile conflict with home-manager)
+GH_CMD="nix run nixpkgs#gh --"
 
 # Authenticate gh with token from 1Password
-if ! gh auth status &>/dev/null 2>&1; then
+if ! $GH_CMD auth status &>/dev/null 2>&1; then
   GH_TOKEN=$(op read "op://VM/GH_MASTER_PAT/token")
-  echo "$GH_TOKEN" | gh auth login --with-token
+  echo "$GH_TOKEN" | $GH_CMD auth login --with-token
   echo "GitHub CLI authenticated."
 else
   echo "GitHub CLI already authenticated."
 fi
 
 # Configure git to use gh for HTTPS auth
-gh auth setup-git
+$GH_CMD auth setup-git
 
 if [[ ! -d "$HOME/dotfiles" ]]; then
   git clone https://github.com/damian-dp/dotfiles.git "$HOME/dotfiles"
