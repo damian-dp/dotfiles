@@ -4,11 +4,12 @@ Reproducible development environment using Nix flakes, home-manager, and nix-dar
 
 ## Overview
 
-Two configurations:
+Three configurations:
 
 | Config | Platform | Use Case | Command |
 |--------|----------|----------|---------|
-| `damian@linux` | Linux x86_64 | VMs, servers (headless) | `home-manager switch --flake .#damian@linux` |
+| `damian@linux` | Linux x86_64 | VMs, servers (headless + OpenCode) | `home-manager switch --flake .#damian@linux` |
+| `damian@linux-client` | Linux x86_64 | Linux desktop (no OpenCode server) | `home-manager switch --flake .#damian@linux-client` |
 | `Damian-MBP` | macOS ARM | Workstation (full setup) | `darwin-rebuild switch --flake .#Damian-MBP` |
 
 ## Quick Start
@@ -77,13 +78,13 @@ dotfiles/
 ├── bootstrap-vm.sh           # VM bootstrap (1Password + Tailscale + OpenCode)
 │
 ├── home/
-│   ├── core.nix              # Shared: CLI tools, dotfiles
+│   ├── core.nix              # Shared: CLI tools, dotfiles, activation scripts
 │   ├── linux.nix             # Linux-specific config
 │   ├── workstation.nix       # macOS: fonts, app configs (Ghostty/Zed/Cursor)
 │   ├── modules/
 │   │   └── opencode.nix      # OpenCode systemd service module
 │   └── dotfiles/
-│       ├── zshrc             # Shell config
+│       ├── zshrc             # Shell config (1Password agent, PATH, aliases)
 │       ├── p10k.zsh          # Powerlevel10k theme
 │       ├── gitconfig-macos   # macOS 1Password signing path
 │       ├── gitconfig-linux   # Linux local key signing path
@@ -93,18 +94,20 @@ dotfiles/
 │       ├── shell/
 │       │   └── commit.sh     # Claude-powered commit messages
 │       ├── opencode/         # OpenCode config files
-│       └── claude/           # Claude CLI config
+│       ├── claude/           # Claude CLI config
+│       └── warp/             # Warp launch configurations
 │
 ├── darwin/
 │   └── system.nix            # macOS system preferences
 │
-├── nixos/
-│   └── configuration.nix     # NixOS system config (if needed)
+├── scripts/                  # Utility scripts (Tailscale, Raycast, etc.)
 │
-└── configs/                  # Workstation app configs (macOS)
-    └── cursor/
-        ├── settings.json
-        └── keybindings.json
+├── configs/                  # Workstation app configs (macOS)
+│   └── cursor/
+│       ├── settings.json
+│       └── keybindings.json
+│
+└── SSH_SETUP.md              # Detailed SSH + 1Password setup guide
 ```
 
 ## What's Included
@@ -114,15 +117,17 @@ dotfiles/
 - **Shell**: zsh + oh-my-zsh + Powerlevel10k
 - **Tools**: git, gh, ripgrep, fd, fzf, eza, zoxide, delta, lazygit, jq, htop, btop, tmux, direnv
 - **Python**: uv (fast Python package manager)
-- **Network**: tailscale, mosh (low-latency SSH)
-- **AI**: Claude Code, OpenCode (installed outside Nix for auto-updates)
+- **JS**: Bun (runtime + package manager), Turborepo (via Bun)
+- **Network**: tailscale
+- **AI**: Claude Code, OpenCode, Codex (installed outside Nix for auto-updates)
 - **Git**: SSH commit signing via 1Password
 
 ### macOS Workstation (workstation.nix + darwin/system.nix)
 
 - **Fonts**: Nerd Fonts (Meslo, JetBrains Mono)
-- **App configs**: Ghostty, Zed, Cursor
-- **System prefs**: Dock autohide, dark mode, text replacements
+- **Tools**: bat (better cat)
+- **App configs**: Ghostty, Zed, Cursor, Warp (launch configs)
+- **System prefs**: auto light/dark mode, Finder show extensions/path bar, text replacements
 - **Services**: Tailscale, Touch ID for sudo
 
 ### Linux VM (linux.nix + opencode.nix)
@@ -178,6 +183,7 @@ For commits to show as "Verified" on GitHub:
 | `ta` | `tmux attach -t` |
 | `tl` | `tmux ls` |
 | `tn` | `tmux new -s` |
+| `vibe-claude` | `claude --dangerously-skip-permissions` |
 | `signin` | Sign in to 1Password CLI (personal + work accounts) |
 
 ## Text Replacements (macOS)

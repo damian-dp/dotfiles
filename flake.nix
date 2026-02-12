@@ -29,8 +29,7 @@
       #   - OpenCode server (systemd service on port 4096)
       #   - Access via Tailscale: http://<tailscale-hostname>:4096
       #
-      # First-time setup: run bootstrap-vm.sh with TS_AUTHKEY set
-      # Password stored in: ~/.config/opencode/credentials/server_password
+      # First-time setup: OP_SERVICE_ACCOUNT_TOKEN='ops_...' ./bootstrap-vm.sh
       #
       homeConfigurations = {
         "damian@linux" = home-manager.lib.homeManagerConfiguration {

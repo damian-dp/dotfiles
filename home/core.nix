@@ -61,10 +61,8 @@
     ".ssh/config".source = ./dotfiles/ssh_config;
     ".tmux.conf".source = ./dotfiles/tmux.conf;
 
-    # OpenCode (oh-my-opencode plugin config + package.json for MCP)
-    # Note: opencode.json is copy-once (see activation script) because OpenCode writes to it
-    ".config/opencode/oh-my-opencode.json".source = ./dotfiles/opencode/oh-my-opencode.json;
-    ".config/opencode/package.json".source = ./dotfiles/opencode/package.json;
+    # OpenCode configs are all copy-once (see activation script)
+    # OpenCode and its plugins need write access to these files
 
     # Shell functions
     ".config/shell/commit.sh".source = ./dotfiles/shell/commit.sh;
@@ -299,11 +297,19 @@
         $DRY_RUN_CMD chmod 644 "$HOME/.claude/settings.json"
       fi
 
-      # OpenCode config (writes permissions, plugin versions)
+      # OpenCode configs (all copy-once - OpenCode and plugins need write access)
+      $DRY_RUN_CMD mkdir -p "$HOME/.config/opencode"
       if [ ! -f "$HOME/.config/opencode/opencode.json" ]; then
-        $DRY_RUN_CMD mkdir -p "$HOME/.config/opencode"
         $DRY_RUN_CMD cp ${./dotfiles/opencode/opencode.json} "$HOME/.config/opencode/opencode.json"
         $DRY_RUN_CMD chmod 644 "$HOME/.config/opencode/opencode.json"
+      fi
+      if [ ! -f "$HOME/.config/opencode/oh-my-opencode.json" ]; then
+        $DRY_RUN_CMD cp ${./dotfiles/opencode/oh-my-opencode.json} "$HOME/.config/opencode/oh-my-opencode.json"
+        $DRY_RUN_CMD chmod 644 "$HOME/.config/opencode/oh-my-opencode.json"
+      fi
+      if [ ! -f "$HOME/.config/opencode/package.json" ]; then
+        $DRY_RUN_CMD cp ${./dotfiles/opencode/package.json} "$HOME/.config/opencode/package.json"
+        $DRY_RUN_CMD chmod 644 "$HOME/.config/opencode/package.json"
       fi
 
     '';
