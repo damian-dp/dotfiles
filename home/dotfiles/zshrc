@@ -87,6 +87,23 @@ fi
 # opencode
 export OPENCODE_EXPERIMENTAL="true"
 [[ -d "$HOME/.opencode/bin" ]] && export PATH="$HOME/.opencode/bin:$PATH"
+OPENCODE_VM_URL="http://dev-vm-damian.taild53693.ts.net:4096"
+opencode() {
+  if [[ "$1" == "local" ]]; then
+    shift
+    command opencode "$@"
+  elif [[ "$1" == "vm" ]]; then
+    shift
+    command opencode attach "$OPENCODE_VM_URL" "$@"
+  else
+    # Default: try VM, fall back to local
+    if curl -s --connect-timeout 2 "$OPENCODE_VM_URL" >/dev/null 2>&1; then
+      command opencode attach "$OPENCODE_VM_URL" "$@"
+    else
+      command opencode "$@"
+    fi
+  fi
+}
 
 # LM Studio (macOS)
 [[ -d "$HOME/.lmstudio/bin" ]] && export PATH="$PATH:$HOME/.lmstudio/bin"
