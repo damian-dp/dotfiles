@@ -13,40 +13,46 @@ Two configurations:
 
 ## Quick Start
 
-### Prerequisites
+### New Linux VM (OpenCode Dev Server)
 
-Install Nix with flakes:
+The bootstrap script sets up a fresh VM as a remote dev environment with OpenCode web, Tailscale, and all your tools. It uses a 1Password Service Account to pull all secrets automatically.
+
+**One-time setup (from your Mac):**
+
+1. Create a **VM** vault in 1Password
+2. Add these items to the VM vault:
+   - `TS_AUTH_KEY` — Tailscale auth key (field: `credential`)
+   - `GH_SSH_KEY` — your ed25519 SSH key (SSH key item)
+   - `GH_MASTER_PAT` — GitHub PAT with repo scope (field: `token`)
+3. Create a **Service Account** (1Password Settings > Developer > Service Accounts)
+   - Grant `read_items` access to the VM vault only
+   - Save the token (starts with `ops_`)
+
+**On the fresh VM:**
 
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
-```
-
-### New Linux VM
-
-```bash
-git clone https://github.com/YOUR_USERNAME/dotfiles.git ~/dotfiles
+git clone https://github.com/damian-dp/dotfiles.git ~/dotfiles
 cd ~/dotfiles
-
-nix run home-manager -- switch --flake .#damian@linux
-
-./scripts/setup-tailscale.sh --ssh
-
-cp .secrets.example ~/.secrets
-# Edit ~/.secrets with your API keys
+OP_SERVICE_ACCOUNT_TOKEN='ops_...' ./bootstrap-vm.sh
 ```
+
+The script will pause after installing Nix to restart your shell. Run it again to continue:
+
+```bash
+source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+OP_SERVICE_ACCOUNT_TOKEN='ops_...' ./bootstrap-vm.sh
+```
+
+After completion, access OpenCode from any Tailscale device:
+- **Browser (phone/laptop):** `http://<tailscale-hostname>:4096`
+- **Terminal:** `opencode attach http://<tailscale-hostname>:4096`
 
 ### New macOS Workstation
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/dotfiles.git ~/dotfiles
+git clone https://github.com/damian-dp/dotfiles.git ~/dotfiles
 cd ~/dotfiles
-
 nix run nix-darwin -- switch --flake .#Damian-MBP
-
-cp .secrets.example ~/.secrets
-# Edit ~/.secrets with your API keys
-
-# Install apps (see APPS.md)
 ```
 
 ### Updating
@@ -68,26 +74,25 @@ darwin-rebuild switch --flake .#Damian-MBP
 dotfiles/
 ├── flake.nix                 # Main entry - defines configurations
 ├── flake.lock                # Pinned dependencies
-├── bootstrap-vm.sh           # Quick VM bootstrap script
+├── bootstrap-vm.sh           # VM bootstrap (1Password + Tailscale + OpenCode)
 │
 ├── home/
 │   ├── core.nix              # Shared: CLI tools, dotfiles
 │   ├── linux.nix             # Linux-specific config
 │   ├── workstation.nix       # macOS: fonts, app configs (Ghostty/Zed/Cursor)
 │   ├── modules/
-│   │   └── opencode.nix      # OpenCode module
+│   │   └── opencode.nix      # OpenCode systemd service module
 │   └── dotfiles/
 │       ├── zshrc             # Shell config
 │       ├── p10k.zsh          # Powerlevel10k theme
 │       ├── gitconfig-macos   # macOS 1Password signing path
-│       ├── gitconfig-linux   # Linux 1Password signing path
+│       ├── gitconfig-linux   # Linux local key signing path
 │       ├── ssh_config        # SSH config
 │       ├── ghostty.conf      # Terminal config
 │       ├── tmux.conf         # Tmux config
 │       ├── shell/
 │       │   └── commit.sh     # Claude-powered commit messages
 │       ├── opencode/         # OpenCode config files
-│       ├── warp/             # Warp terminal configs
 │       └── claude/           # Claude CLI config
 │
 ├── darwin/
@@ -96,23 +101,10 @@ dotfiles/
 ├── nixos/
 │   └── configuration.nix     # NixOS system config (if needed)
 │
-├── configs/                  # Workstation app configs (macOS)
-│   ├── cursor/
-│   │   ├── settings.json
-│   │   └── keybindings.json
-│   └── raycast/              # Raycast config backup
-│
-├── scripts/
-│   ├── bootstrap.sh          # Initial machine setup
-│   ├── setup-tailscale.sh    # Tailscale install + auth
-│   ├── exit_node_setup.sh    # Configure VM as exit node
-│   ├── raycast-export.sh     # Export Raycast config
-│   └── raycast-import.sh     # Import Raycast config
-│
-├── APPS.md                   # Manual app installation list
-├── SSH_SETUP.md              # 1Password SSH setup guide
-├── .secrets.example          # Template for secrets file
-└── README.md
+└── configs/                  # Workstation app configs (macOS)
+    └── cursor/
+        ├── settings.json
+        └── keybindings.json
 ```
 
 ## What's Included
@@ -123,8 +115,8 @@ dotfiles/
 - **Tools**: git, gh, ripgrep, fd, fzf, eza, zoxide, delta, lazygit, jq, htop, btop, tmux, direnv
 - **Python**: uv (fast Python package manager)
 - **Network**: tailscale, mosh (low-latency SSH)
-- **SSH**: 1Password integration (see [SSH_SETUP.md](SSH_SETUP.md))
-- **Git**: 1Password SSH commit signing
+- **AI**: Claude Code, OpenCode (installed outside Nix for auto-updates)
+- **Git**: SSH commit signing via 1Password
 
 ### macOS Workstation (workstation.nix + darwin/system.nix)
 
@@ -133,9 +125,13 @@ dotfiles/
 - **System prefs**: Dock autohide, dark mode, text replacements
 - **Services**: Tailscale, Touch ID for sudo
 
-## Config Management
+### Linux VM (linux.nix + opencode.nix)
 
-Three approaches are used depending on whether apps need to write to their configs:
+- **OpenCode**: systemd service running `opencode web` on port 4096
+- **Docker**: docker + docker-compose
+- **Access**: via Tailscale (no public ports)
+
+## Config Management
 
 | Method | Description | Use Case |
 |--------|-------------|----------|
@@ -143,118 +139,34 @@ Three approaches are used depending on whether apps need to write to their confi
 | **Symlink** | Read-only link to nix store | Configs that don't change (keybindings, themes) |
 | **Copy-once** | Copied on first run, then writable | Apps that write state/permissions to config |
 
-### Config Details
+## Git Commit Signing
 
-| Config | Method | Source | Notes |
-|--------|--------|--------|-------|
-| Git | module | `home/core.nix` | `programs.git` |
-| GitHub CLI | module | `home/core.nix` | `programs.gh` |
-| Zed | module | `home/workstation.nix` | `programs.zed-editor` |
-| Ghostty | symlink | `home/dotfiles/ghostty.conf` | |
-| Cursor settings | symlink | `configs/cursor/settings.json` | |
-| Cursor keybindings | symlink | `configs/cursor/keybindings.json` | |
-| Warp | symlink | `home/dotfiles/warp/` | |
-| Claude `CLAUDE.md` | symlink | `home/dotfiles/claude/CLAUDE.md` | Instructions only |
-| Claude `settings.json` | copy-once | `home/dotfiles/claude/settings.json` | Writes permissions |
-| OpenCode | copy-once | `home/dotfiles/opencode/opencode.json` | Writes permissions |
-
-## Secrets
-
-API keys and tokens are stored in `~/.secrets` (not in repo):
-
-```bash
-cp .secrets.example ~/.secrets
-vim ~/.secrets
-```
-
-The zshrc automatically sources this file if it exists.
-
-## Tailscale
-
-### Linux VM (Client)
-
-```bash
-./scripts/setup-tailscale.sh --ssh
-```
-
-Opens a URL - authenticate with Google.
-
-### Linux VM (Exit Node)
-
-To configure a VM as a Tailscale exit node (VPN endpoint):
-
-```bash
-./scripts/setup-tailscale.sh --exit-node
-./scripts/exit_node_setup.sh
-```
-
-Then approve the exit node in [Tailscale admin console](https://login.tailscale.com/admin/machines).
-
-The exit node script configures:
-- IP forwarding (IPv4 + IPv6)
-- UDP GRO optimization for better throughput
-- Persistence across reboots
+All commits are automatically signed using SSH keys stored in 1Password. No special commands needed — `git commit` just works.
 
 ### macOS
 
-Tailscale is enabled via nix-darwin. After first run:
+Uses 1Password desktop app's built-in `op-ssh-sign` binary. Requires:
+- 1Password desktop app installed
+- SSH agent enabled in 1Password settings
+- SSH key added to 1Password
 
-```bash
-tailscale up --ssh
-```
+### Linux (Headless VM)
 
-### Using an Exit Node
+Uses a local SSH key at `~/.ssh/id_ed25519_signing`, extracted from 1Password during bootstrap. The 1Password SSH agent and `op-ssh-sign` require the desktop GUI app, so headless VMs use a local key file instead.
 
-From any Tailscale device:
+The `gitconfig-linux` include points `user.signingkey` at the local `.pub` file.
 
-```bash
-tailscale up --exit-node=<exit-node-ip>
-```
+### GitHub Setup
 
-## Node.js (NVM)
+For commits to show as "Verified" on GitHub:
 
-Node.js is managed via [NVM](https://github.com/nvm-sh/nvm) (already configured in zshrc).
+1. Go to [GitHub SSH Keys](https://github.com/settings/keys)
+2. Click **New SSH key**
+3. Set **Key type: Signing Key** (not Authentication)
+4. Paste your public key
+5. Ensure your commit email matches a verified email on your GitHub account
 
-### First-time Setup
-
-```bash
-# Install NVM
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-
-# Reload shell or source NVM
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-
-# Install Node LTS
-nvm install --lts
-nvm alias default node
-
-# Create system symlink (required for tools like turbo that use /usr/bin/env node)
-sudo ln -s "$HOME/.nvm/versions/node/$(node -v)/bin/node" /usr/local/bin/node
-```
-
-### Why the Symlink?
-
-Some tools (e.g., `turbo` installed via bun) use `#!/usr/bin/env node` shebangs. NVM's node is only available in interactive shells, so `/usr/bin/env node` fails in non-interactive contexts. The symlink makes node available system-wide.
-
-**Note**: After upgrading node versions via NVM, update the symlink:
-
-```bash
-sudo rm /usr/local/bin/node
-sudo ln -s "$HOME/.nvm/versions/node/$(node -v)/bin/node" /usr/local/bin/node
-```
-
-## Mosh (Mobile Shell)
-
-For high-latency connections, use mosh instead of SSH:
-
-```bash
-mosh user@hostname
-```
-
-Mosh provides local echo and handles connection interruptions gracefully.
-
-## Shell Aliases & Functions
+## Shell Aliases
 
 | Alias | Command |
 |-------|---------|
@@ -266,15 +178,7 @@ Mosh provides local echo and handles connection interruptions gracefully.
 | `ta` | `tmux attach -t` |
 | `tl` | `tmux ls` |
 | `tn` | `tmux new -s` |
-| `vibe-claude` | `claude --dangerously-skip-permissions` |
 | `signin` | Sign in to 1Password CLI (personal + work accounts) |
-
-### Shell Functions
-
-| Function | Description |
-|----------|-------------|
-| `commit` | Claude-powered commit message generator (see `~/.config/shell/commit.sh`) |
-| `opencode` | OpenCode wrapper with Tailscale serve (see `~/.config/shell/opencode.sh`) |
 
 ## Text Replacements (macOS)
 
@@ -283,8 +187,6 @@ Mosh provides local echo and handles connection interruptions gracefully.
 | `@@` | hello@damianpetrov.com |
 | `@&` | damian.petrov@tilt.legal |
 | `omw` | On my way! |
-
-> **Note**: Text replacements are set via nix-darwin but may not persist across macOS updates due to Apple's iCloud sync behavior.
 
 ## Updating Nix Packages
 
@@ -301,87 +203,6 @@ Edit the appropriate file:
 - **All platforms**: `home/core.nix` → `home.packages`
 - **macOS only**: `home/workstation.nix` → `home.packages`
 - **macOS system**: `darwin/system.nix` → `environment.systemPackages`
-
-## SSH & Git Authentication
-
-For detailed SSH setup instructions (including 1Password SSH agent, SSH bookmarks, and troubleshooting), see **[SSH_SETUP.md](SSH_SETUP.md)**.
-
-## Git Commit Signing
-
-All commits are automatically signed using SSH keys stored in 1Password. No special commands needed — `git commit` just works.
-
-### Architecture
-
-```
-gitconfig (base)
-├── commit.gpgsign = true             # Auto-sign all commits
-├── user.signingkey = ssh-ed25519...  # Public key
-├── gpg.format = ssh
-│
-├── [includeIf "gitdir:/Users/"]      # macOS
-│   └── gitconfig-macos
-│       └── program = /Applications/1Password.app/.../op-ssh-sign
-│
-└── [includeIf "gitdir:/home/"]       # Linux
-    └── gitconfig-linux
-        └── program = ~/.local/bin/op-ssh-sign-headless
-```
-
-### macOS (Desktop)
-
-Uses 1Password desktop app's built-in `op-ssh-sign` binary. Requires:
-- 1Password desktop app installed
-- SSH agent enabled in 1Password settings
-- SSH key added to 1Password
-
-### Linux Headless VMs
-
-Uses a local SSH key stored at `~/.ssh/id_ed25519_signing`. Simpler than the 1Password CLI approach and doesn't require re-authentication.
-
-**First-time setup** — extract the signing key from 1Password:
-
-```bash
-# Sign in to 1Password CLI
-eval $(op signin --account my)
-
-# Extract the signing key
-op item get "SSH Signing Key" --vault Development --fields "private key" --reveal > ~/.ssh/id_ed25519_signing
-chmod 600 ~/.ssh/id_ed25519_signing
-
-op item get "SSH Signing Key" --vault Development --fields "public key" > ~/.ssh/id_ed25519_signing.pub
-chmod 644 ~/.ssh/id_ed25519_signing.pub
-```
-
-**Verify it works:**
-
-```bash
-git commit --allow-empty -m "test signing"
-git log --show-signature -1
-```
-
-The gitconfig-linux overrides the signing key path to use the local file.
-
-> **Note**: For SSH authentication setup (not commit signing), see [SSH_SETUP.md](SSH_SETUP.md).
-
-### GitHub Setup
-
-For commits to show as "Verified" on GitHub:
-
-1. Go to [GitHub SSH Keys](https://github.com/settings/keys)
-2. Click **New SSH key**
-3. Set **Key type: Signing Key** (not Authentication)
-4. Paste your public key
-5. Ensure your commit email matches a verified email on your GitHub account
-
-### Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| "Unverified" on GitHub | Add key as **Signing Key** (not just Authentication) in GitHub settings |
-| "Permission denied" on gitconfig | Edit source in `~/dotfiles/home/dotfiles/`, rebuild with `home-manager switch` |
-| Signing fails on Linux | Ensure `~/.ssh/id_ed25519_signing` exists (see extraction steps above) |
-| "Too many authentication failures" | Set up SSH Bookmarks — see [SSH_SETUP.md](SSH_SETUP.md#ssh-bookmarks-solving-the-6-key-limit) |
-| Shell not found on Linux VM | Run `home-manager switch` to fix nix PATH — see [SSH_SETUP.md](SSH_SETUP.md#troubleshooting) |
 
 ## License
 
