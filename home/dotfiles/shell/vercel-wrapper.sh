@@ -16,7 +16,7 @@ if [[ -n "$OP_SERVICE_ACCOUNT_TOKEN" ]] && [[ -z "$VERCEL_TOKEN" ]]; then
 fi
 
 if [[ -n "$VERCEL_TOKEN" ]]; then
-  exec "$HOME/.bun/bin/vercel" --token="$VERCEL_TOKEN" "$@"
+  exec "$HOME/.bun/bin/vercel" "$@" --token="$VERCEL_TOKEN"
 else
   exec "$HOME/.bun/bin/vercel" "$@"
 fi
