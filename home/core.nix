@@ -268,7 +268,7 @@
       if [ -x "$HOME/.bun/bin/bun" ]; then
         if ! "$HOME/.bun/bin/bun" pm ls -g 2>/dev/null | grep -q "turbo@"; then
           echo "Installing Turborepo..."
-          $DRY_RUN_CMD "$HOME/.bun/bin/bun" add -g turbo
+          $DRY_RUN_CMD "$HOME/.bun/bin/bun" add -g turbo@latest
         fi
         if ! "$HOME/.bun/bin/bun" pm ls -g 2>/dev/null | grep -q "vercel@"; then
           echo "Installing Vercel CLI..."
