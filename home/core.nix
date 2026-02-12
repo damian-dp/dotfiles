@@ -40,8 +40,9 @@
     # Python tooling
     uv
 
-    # Node.js (needed by Vercel CLI and other JS tools)
+    # Node.js + package managers
     nodejs
+    pnpm
 
     # Networking
     tailscale
