@@ -230,7 +230,7 @@
     # =========================================================================
     installAiClis = lib.hm.dag.entryAfter ["writeBoundary"] ''
       # Ensure nix-provided tools are in PATH for install scripts
-      export PATH="${pkgs.curl}/bin:${pkgs.wget}/bin:${pkgs.coreutils}/bin:$PATH"
+      export PATH="${pkgs.curl}/bin:${pkgs.wget}/bin:${pkgs.coreutils}/bin:${pkgs.gnutar}/bin:${pkgs.gzip}/bin:$PATH"
 
       # Claude Code (check by file path, not command -v)
       if [ ! -x "$HOME/.local/bin/claude" ]; then
