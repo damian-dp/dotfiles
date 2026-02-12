@@ -154,15 +154,15 @@ dotfiles/
 
 The VM uses a 1Password **Service Account** scoped to the VM vault only (no access to personal or other vaults). The bootstrap script pulls secrets once and persists them locally:
 
-| Secret | 1Password Item | Stored On Disk |
-|--------|---------------|----------------|
-| Service account token | (provided manually once) | `~/.config/op/service-account-token` |
-| Tailscale auth key | `TS_AUTH_KEY` | Not persisted (used once) |
-| SSH signing key | `GH_SSH_KEY` | `~/.ssh/id_ed25519_signing` |
-| GitHub PAT | `GH_MASTER_PAT` | `~/.config/gh/hosts.yml` (via `gh auth`) |
-| Vercel token | `VERCEL_TOKEN` | `~/.config/vercel/auth.json` (via `vercel login`) |
+| Secret | 1Password Item | How It's Used |
+|--------|---------------|---------------|
+| Service account token | (provided manually once) | Saved to `~/.config/op/service-account-token`, auto-loaded in every shell |
+| Tailscale auth key | `TS_AUTH_KEY` | Used once during bootstrap (not persisted) |
+| SSH signing key | `GH_SSH_KEY` | Extracted to `~/.ssh/id_ed25519_signing` (needed on disk for git/ssh) |
+| GitHub PAT | `GH_MASTER_PAT` | Stored by `gh auth` in `~/.config/gh/hosts.yml` |
+| Vercel token | `VERCEL_TOKEN` | Loaded from 1Password on first `vercel` command each session |
 
-The service account token is auto-loaded in every shell session via zshrc, so `op read "op://VM/..."` works anytime without re-authenticating.
+The service account token is the only secret saved to disk by the bootstrap. It's auto-loaded in every shell session, enabling `op read "op://VM/..."` to fetch other secrets on demand.
 
 ## Git Commit Signing
 
