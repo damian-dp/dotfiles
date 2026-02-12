@@ -25,6 +25,7 @@ The bootstrap script sets up a fresh VM as a remote dev environment with OpenCod
    - `TS_AUTH_KEY` — Tailscale auth key (field: `credential`)
    - `GH_SSH_KEY` — your ed25519 SSH key (SSH key item)
    - `GH_MASTER_PAT` — GitHub PAT with repo scope (field: `token`)
+   - `VERCEL_TOKEN` — Vercel auth token (field: `token`)
 3. Create a **Service Account** (1Password Settings > Developer > Service Accounts)
    - Grant `read_items` access to the VM vault only
    - Save the token (starts with `ops_`)

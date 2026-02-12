@@ -205,6 +205,18 @@ echo "[8/8] Applying home-manager config..."
 
 nix run home-manager -- switch -b backup --flake "$HOME/dotfiles#damian@linux"
 
+# Authenticate Vercel CLI (token from 1Password)
+if command -v vercel &>/dev/null || [ -x "$HOME/.bun/bin/vercel" ]; then
+  VERCEL_BIN="${HOME}/.bun/bin/vercel"
+  if ! "$VERCEL_BIN" whoami &>/dev/null 2>&1; then
+    VERCEL_TOKEN=$(op read "op://VM/VERCEL_TOKEN/token")
+    "$VERCEL_BIN" login --token="$VERCEL_TOKEN"
+    echo "Vercel CLI authenticated."
+  else
+    echo "Vercel CLI already authenticated."
+  fi
+fi
+
 # Enable lingering so systemd user services run without an active login session
 loginctl enable-linger "$USER"
 
