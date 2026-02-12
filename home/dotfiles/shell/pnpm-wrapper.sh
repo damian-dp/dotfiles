@@ -10,7 +10,7 @@ fi
 
 # Fetch GitHub NPM token from 1Password
 if [[ -n "$OP_SERVICE_ACCOUNT_TOKEN" ]] && [[ -z "$GH_NPM_TOKEN" ]]; then
-  export GH_NPM_TOKEN=$(op read "op://VM/GH_MASTER_PAT/token" 2>/dev/null)
+  export GH_NPM_TOKEN=$(op read "op://VM/GH_CLASSIC_PAT/token" 2>/dev/null)
 fi
 
 exec "$HOME/.nix-profile/bin/pnpm" "$@"
