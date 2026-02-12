@@ -1,6 +1,6 @@
 #!/bin/bash
 # Vercel CLI wrapper for headless VMs
-# Fetches token from 1Password and exports VERCEL_TOKEN (natively read by CLI)
+# Fetches token from 1Password and passes --token flag to CLI
 # Installed to ~/.local/bin/vercel, shadows ~/.bun/bin/vercel
 
 set -e
@@ -10,9 +10,13 @@ if [[ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]] && [[ -f "$HOME/.config/op/service-accou
   export OP_SERVICE_ACCOUNT_TOKEN=$(cat "$HOME/.config/op/service-account-token")
 fi
 
-# Fetch Vercel token from 1Password (CLI reads VERCEL_TOKEN automatically)
+# Fetch Vercel token from 1Password
 if [[ -n "$OP_SERVICE_ACCOUNT_TOKEN" ]] && [[ -z "$VERCEL_TOKEN" ]]; then
-  export VERCEL_TOKEN=$(op read "op://VM/VERCEL_TOKEN/token" 2>/dev/null)
+  VERCEL_TOKEN=$(op read "op://VM/VERCEL_TOKEN/token" 2>/dev/null)
 fi
 
-exec "$HOME/.bun/bin/vercel" "$@"
+if [[ -n "$VERCEL_TOKEN" ]]; then
+  exec "$HOME/.bun/bin/vercel" --token="$VERCEL_TOKEN" "$@"
+else
+  exec "$HOME/.bun/bin/vercel" "$@"
+fi
