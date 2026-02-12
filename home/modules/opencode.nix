@@ -22,8 +22,7 @@ in
     (mkIf (pkgs.stdenv.isLinux && cfg.server.enable) {
       systemd.user.startServices = "sd-switch";
 
-      # OpenCode server - password loaded from credentials file
-      # Create password: mkdir -p ~/.config/opencode/credentials && echo "your-password" > ~/.config/opencode/credentials/server_password
+      # OpenCode web server (no password - access restricted via Tailscale)
       systemd.user.services.opencode = {
         Unit = {
           Description = "OpenCode Server";
@@ -31,8 +30,7 @@ in
 
         Service = {
           Type = "simple";
-          ExecStart = "/bin/sh -c 'OPENCODE_SERVER_PASSWORD=$(cat \"$CREDENTIALS_DIRECTORY/opencode_password\") exec %h/.opencode/bin/opencode serve --hostname 0.0.0.0 --port ${toString cfg.server.port}'";
-          LoadCredential = "opencode_password:%h/.config/opencode/credentials/server_password";
+          ExecStart = "%h/.opencode/bin/opencode web --hostname 0.0.0.0 --port ${toString cfg.server.port}";
           Restart = "on-failure";
           RestartSec = "5";
           Environment = [

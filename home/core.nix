@@ -210,8 +210,8 @@
   # Session Variables
   # =============================================================================
   home.sessionVariables = {
-    EDITOR = "zed --wait";
-    VISUAL = "zed --wait";
+    EDITOR = if pkgs.stdenv.isDarwin then "zed --wait" else "vim";
+    VISUAL = if pkgs.stdenv.isDarwin then "zed --wait" else "vim";
   };
 
   # =============================================================================

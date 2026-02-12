@@ -5,12 +5,10 @@
 # via ~/.ssh/config (not tracked in dotfiles). See README for setup instructions.
 
 # =============================================================================
-# Development VMs (Tailscale)
+# GitHub (use signing key on Linux VMs where 1Password SSH agent isn't available)
 # =============================================================================
-# TODO: Add your Azure VM here after setup
-# Host dev-vm
-# 	HostName <tailscale-ip>
-# 	User damian
+Host github.com
+	IdentityFile ~/.ssh/id_ed25519_signing
 
 # =============================================================================
 # Global Settings
