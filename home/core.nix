@@ -40,6 +40,9 @@
     # Python tooling
     uv
 
+    # Node.js (needed by Vercel CLI and other JS tools)
+    nodejs
+
     # Networking
     tailscale
     # Note: mosh installed via apt in bootstrap.sh (needs to be in system PATH for mosh-server)
