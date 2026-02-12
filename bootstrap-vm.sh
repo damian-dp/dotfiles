@@ -224,6 +224,8 @@ nix run home-manager -- switch -b backup --flake "$HOME/dotfiles#damian@linux"
 if [ -x "$HOME/.bun/bin/vercel" ]; then
   VERCEL_TOKEN_VAL=$(op read "op://VM/VERCEL_TOKEN/token" 2>/dev/null)
   if [[ -n "$VERCEL_TOKEN_VAL" ]]; then
+    # Ensure node is in PATH (just installed by home-manager)
+    export PATH="$HOME/.nix-profile/bin:$PATH"
     VERCEL_USER=$(VERCEL_TOKEN="$VERCEL_TOKEN_VAL" "$HOME/.bun/bin/vercel" whoami 2>/dev/null)
     if [[ -n "$VERCEL_USER" ]]; then
       echo "Vercel CLI authenticated as: $VERCEL_USER"
