@@ -1,14 +1,8 @@
 # Damian's SSH Config
 # Managed by dotfiles
 #
-# NOTE: 1Password SSH bookmarks and agent config are managed locally on macOS
-# via ~/.ssh/config (not tracked in dotfiles). See README for setup instructions.
-
-# =============================================================================
-# GitHub (use signing key on Linux VMs where 1Password SSH agent isn't available)
-# =============================================================================
-Host github.com
-	IdentityFile ~/.ssh/id_ed25519_signing
+# Platform-specific blocks (GitHub auth, 1Password agent, VM forwarding)
+# are appended by home/core.nix based on the target platform.
 
 # =============================================================================
 # Global Settings

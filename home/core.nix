@@ -73,11 +73,25 @@
       + lib.optionalString pkgs.stdenv.isDarwin ''
 
         # =============================================================================
+        # 1Password SSH Agent (macOS only)
+        # =============================================================================
+        Host *
+        	IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+
+        # =============================================================================
         # VM Port Forwarding (macOS only)
         # =============================================================================
         Host vm
         	HostName dev-vm-damian.taild53693.ts.net
         	LocalForward 3000 localhost:3000
+      ''
+      + lib.optionalString pkgs.stdenv.isLinux ''
+
+        # =============================================================================
+        # GitHub (Linux VMs - use key file, no 1Password agent)
+        # =============================================================================
+        Host github.com
+        	IdentityFile ~/.ssh/id_ed25519_signing
       '';
     ".tmux.conf".source = ./dotfiles/tmux.conf;
 
