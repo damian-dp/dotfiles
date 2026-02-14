@@ -65,7 +65,16 @@
     # Platform-specific 1Password signing paths (included by programs.git)
     ".gitconfig-macos".source = ./dotfiles/gitconfig-macos;
     ".gitconfig-linux".source = ./dotfiles/gitconfig-linux;
-    ".ssh/config".source = ./dotfiles/ssh_config;
+    ".ssh/config".text = builtins.readFile ./dotfiles/ssh_config
+      + lib.optionalString pkgs.stdenv.isDarwin ''
+
+        # =============================================================================
+        # VM Port Forwarding (macOS only)
+        # =============================================================================
+        Host vm
+        	HostName dev-vm-damian.taild53693.ts.net
+        	LocalForward 3000 localhost:3000
+      '';
     ".tmux.conf".source = ./dotfiles/tmux.conf;
 
     # OpenCode configs are all copy-once (see activation script)
