@@ -44,6 +44,10 @@
     nodejs
     pnpm
 
+    # LSP servers (used by Claude Code plugins)
+    nodePackages.typescript-language-server
+    typescript
+
     # Web servers / reverse proxies
     caddy
 
