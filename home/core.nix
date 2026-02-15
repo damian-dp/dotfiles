@@ -47,6 +47,7 @@
     # LSP servers (used by Claude Code plugins)
     nodePackages.typescript-language-server
     typescript
+    biome
 
     # Web servers / reverse proxies
     # caddy on Linux is handled in linux.nix (needs cap_net_bind_service for port 80)
