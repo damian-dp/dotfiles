@@ -35,7 +35,7 @@ in
           RestartSec = "5";
           Environment = [
             "HOME=%h"
-            "PATH=%h/.opencode/bin:%h/.bun/bin:%h/.local/bin:${pkgs.coreutils}/bin:${pkgs.bash}/bin:/usr/bin:/bin"
+            "PATH=%h/.opencode/bin:%h/.bun/bin:%h/.local/bin:%h/.nix-profile/bin:${pkgs.coreutils}/bin:${pkgs.bash}/bin:/usr/bin:/bin"
           ];
         };
 
