@@ -159,7 +159,7 @@ The VM uses a 1Password **Service Account** scoped to the VM vault only (no acce
 | Service account token | (provided manually once) | Saved to `~/.config/op/service-account-token`, auto-loaded in every shell |
 | Tailscale auth key | `TS_AUTH_KEY` | Used once during bootstrap (not persisted) |
 | SSH signing key | `GH_SSH_KEY` | Extracted to `~/.ssh/id_ed25519_signing` (needed on disk for git/ssh) |
-| GitHub PAT | `GH_MASTER_PAT` | Stored by `gh auth` in `~/.config/gh/hosts.yml` |
+| GitHub OAuth | (device code flow) | `gh auth login --web` during bootstrap, stored in `~/.config/gh/hosts.yml` |
 | Vercel token | `VERCEL_TOKEN` | Loaded from 1Password on first `vercel` command each session |
 
 The service account token is the only secret saved to disk by the bootstrap. It's auto-loaded in every shell session, enabling `op read "op://VM/..."` to fetch other secrets on demand.
