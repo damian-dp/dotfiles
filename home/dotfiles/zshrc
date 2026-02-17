@@ -88,8 +88,29 @@ fi
 export OPENCODE_EXPERIMENTAL="true"
 [[ -d "$HOME/.opencode/bin" ]] && export PATH="$HOME/.opencode/bin:$PATH"
 OPENCODE_VM_URL="http://vm:4096"
+# Map local project dirs to VM paths for opencode --dir
+typeset -A _opencode_vm_dirs=(
+  [cubitt]="$HOME/code/tilt/cubitt"
+  [mobius]="$HOME/code/tilt/mobius"
+  [dotfiles]="$HOME/code/dotfiles"
+)
 opencode() {
-  local mode
+  local mode dir_args=()
+
+  # Check for --project shorthand flags (e.g. --cubitt, --mobius, --dotfiles)
+  local args=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --cubitt|--mobius|--dotfiles)
+        local project="${1#--}"
+        dir_args=(--dir "${_opencode_vm_dirs[$project]}")
+        ;;
+      *) args+=("$1") ;;
+    esac
+    shift
+  done
+  set -- "${args[@]}"
+
   if [[ "$1" == "local" ]]; then
     shift
     mode="local"
@@ -105,9 +126,18 @@ opencode() {
     fi
   fi
 
-  echo "[$(date '+%H:%M:%S')] opencode: $mode" >> ~/.local/state/opencode.log
+  # Auto-detect project dir from cwd when connecting to VM (if no --project flag)
+  if [[ "$mode" == vm && ${#dir_args[@]} -eq 0 ]]; then
+    case "$PWD" in
+      */code/tilt/cubitt*)  dir_args=(--dir "${_opencode_vm_dirs[cubitt]}") ;;
+      */code/tilt/mobius*)  dir_args=(--dir "${_opencode_vm_dirs[mobius]}") ;;
+      */code/dotfiles*)     dir_args=(--dir "${_opencode_vm_dirs[dotfiles]}") ;;
+    esac
+  fi
+
+  echo "[$(date '+%H:%M:%S')] opencode: $mode ${dir_args[*]}" >> ~/.local/state/opencode.log
   if [[ "$mode" == vm ]]; then
-    command opencode attach "$OPENCODE_VM_URL" "$@"
+    command opencode attach "$OPENCODE_VM_URL" "${dir_args[@]}" "$@"
   else
     command opencode "$@"
   fi

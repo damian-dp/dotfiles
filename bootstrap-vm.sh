@@ -224,6 +224,7 @@ mkdir -p "$HOME/code/tilt"
 
 for repo in TILT-Legal/Mobius TILT-Legal/Cubitt; do
   repo_name="${repo##*/}"
+  repo_name="${repo_name,,}"
   if [[ ! -d "$HOME/code/tilt/$repo_name" ]]; then
     git clone "git@github.com:$repo.git" "$HOME/code/tilt/$repo_name"
     echo "Cloned $repo_name."
