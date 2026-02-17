@@ -24,8 +24,7 @@ The bootstrap script sets up a fresh VM as a remote dev environment with OpenCod
 2. Add these items to the VM vault:
    - `TS_AUTH_KEY` — Tailscale auth key (field: `credential`)
    - `GH_SSH_KEY` — your ed25519 SSH key (SSH key item)
-   - `GH_MASTER_PAT` — GitHub PAT with repo scope (field: `token`)
-   - `VERCEL_TOKEN` — Vercel auth token (field: `token`)
+   - `VERCEL_TOKEN` — Vercel auth token (field: `token`, optional — only needed for Vercel deploys)
 3. Create a **Service Account** (1Password Settings > Developer > Service Accounts)
    - Grant `read_items` access to the VM vault only
    - Save the token (starts with `ops_`)
@@ -98,7 +97,9 @@ dotfiles/
 │       ├── ghostty.conf      # Terminal config
 │       ├── tmux.conf         # Tmux config
 │       ├── shell/
-│       │   └── commit.sh     # Claude-powered commit messages
+│       │   ├── commit.sh         # Claude-powered commit messages
+│       │   ├── pnpm-wrapper.sh   # Injects GH_NPM_TOKEN on Linux VMs
+│       │   └── vercel-wrapper.sh # Injects Vercel token on Linux VMs
 │       ├── opencode/         # OpenCode config files
 │       ├── claude/           # Claude CLI config
 │       └── warp/             # Warp launch configurations
@@ -107,6 +108,9 @@ dotfiles/
 │   └── system.nix            # macOS system preferences
 │
 ├── scripts/                  # Utility scripts (Tailscale, Raycast, etc.)
+│
+├── nixos/
+│   └── configuration.nix     # NixOS system config (if running NixOS)
 │
 ├── configs/                  # Workstation app configs (macOS)
 │   └── cursor/
@@ -121,9 +125,10 @@ dotfiles/
 ### Both Platforms (core.nix)
 
 - **Shell**: zsh + oh-my-zsh + Powerlevel10k
-- **Tools**: git, gh, ripgrep, fd, fzf, eza, zoxide, delta, lazygit, jq, htop, btop, tmux, direnv
+- **Tools**: git, gh, curl, wget, ripgrep, fd, fzf, eza, zoxide, delta, lazygit, jq, tree, htop, btop, tmux, direnv, caddy
 - **Python**: uv (fast Python package manager)
-- **JS**: Bun (runtime + package manager), Turborepo, Vercel CLI (via Bun)
+- **JS**: Node.js, pnpm, Bun (runtime + package manager), Turborepo, Vercel CLI (via Bun)
+- **LSP**: typescript-language-server, biome (used by AI coding tools)
 - **Network**: tailscale
 - **AI**: Claude Code, OpenCode, Codex (installed outside Nix for auto-updates)
 - **Git**: SSH commit signing via 1Password
@@ -140,6 +145,8 @@ dotfiles/
 
 - **OpenCode**: systemd service running `opencode web` on port 4096
 - **Docker**: docker + docker-compose
+- **Caddy**: copied with `cap_net_bind_service` for port 80 binding
+- **CLI wrappers**: `pnpm` and `vercel` wrappers that inject 1Password tokens
 - **Access**: via Tailscale (no public ports)
 
 ## OpenCode Shell Function
