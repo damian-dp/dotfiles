@@ -142,6 +142,23 @@ dotfiles/
 - **Docker**: docker + docker-compose
 - **Access**: via Tailscale (no public ports)
 
+## OpenCode Shell Function
+
+The `opencode` wrapper auto-connects to the VM server when reachable, falling back to local:
+
+```bash
+opencode              # auto-detect: VM if reachable, else local
+opencode local        # force local
+opencode vm           # force VM
+opencode --cubitt     # attach to VM in ~/code/tilt/cubitt
+opencode --mobius     # attach to VM in ~/code/tilt/mobius
+opencode --dotfiles   # attach to VM in ~/code/dotfiles
+```
+
+When connecting to the VM from a local project directory (`~/code/tilt/cubitt`, etc.), the matching VM directory is passed via `--dir` automatically.
+
+Connection mode is logged to `~/.local/state/opencode.log`.
+
 ## Config Management
 
 | Method | Description | Use Case |
