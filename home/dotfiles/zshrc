@@ -89,19 +89,27 @@ export OPENCODE_EXPERIMENTAL="true"
 [[ -d "$HOME/.opencode/bin" ]] && export PATH="$HOME/.opencode/bin:$PATH"
 OPENCODE_VM_URL="http://vm:4096"
 opencode() {
+  local mode
   if [[ "$1" == "local" ]]; then
     shift
-    command opencode "$@"
+    mode="local"
   elif [[ "$1" == "vm" ]]; then
     shift
-    command opencode attach "$OPENCODE_VM_URL" "$@"
+    mode="vm"
   else
     # Default: try VM, fall back to local
-    if curl -s --connect-timeout 2 "$OPENCODE_VM_URL" >/dev/null 2>&1; then
-      command opencode attach "$OPENCODE_VM_URL" "$@"
+    if curl -s --connect-timeout 2 --max-time 3 "$OPENCODE_VM_URL" >/dev/null 2>&1; then
+      mode="vm"
     else
-      command opencode "$@"
+      mode="local (VM unreachable)"
     fi
+  fi
+
+  echo "[$(date '+%H:%M:%S')] opencode: $mode" >> ~/.local/state/opencode.log
+  if [[ "$mode" == vm ]]; then
+    command opencode attach "$OPENCODE_VM_URL" "$@"
+  else
+    command opencode "$@"
   fi
 }
 
