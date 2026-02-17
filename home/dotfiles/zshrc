@@ -89,10 +89,11 @@ export OPENCODE_EXPERIMENTAL="true"
 [[ -d "$HOME/.opencode/bin" ]] && export PATH="$HOME/.opencode/bin:$PATH"
 OPENCODE_VM_URL="http://vm:4096"
 # Map local project dirs to VM paths for opencode --dir
+# Paths use /home/damian (Linux VM), not $HOME (macOS /Users/damian)
 typeset -A _opencode_vm_dirs=(
-  [cubitt]="$HOME/code/tilt/cubitt"
-  [mobius]="$HOME/code/tilt/mobius"
-  [dotfiles]="$HOME/code/dotfiles"
+  [cubitt]="/home/damian/code/tilt/cubitt"
+  [mobius]="/home/damian/code/tilt/mobius"
+  [dotfiles]="/home/damian/code/dotfiles"
 )
 opencode() {
   local mode dir_args=()
