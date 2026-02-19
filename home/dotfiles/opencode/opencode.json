@@ -165,7 +165,7 @@
     }
   },
   "mcp": {
-    "deep-wiki": {
+    "deepwiki": {
       "type": "remote",
       "url": "https://mcp.deepwiki.com/mcp",
       "enabled": true
