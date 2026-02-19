@@ -33,6 +33,11 @@ if [[ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]] && [[ -f "$HOME/.config/op/service-accou
   export OP_SERVICE_ACCOUNT_TOKEN=$(cat "$HOME/.config/op/service-account-token")
 fi
 
+# Vercel deployment bypass (used by cubitt-canary MCP in Claude Code & OpenCode)
+if [[ -n "$OP_SERVICE_ACCOUNT_TOKEN" ]] && [[ -z "$VERCEL_BYPASS_SECRET" ]]; then
+  export VERCEL_BYPASS_SECRET=$(op read "op://VM/VERCEL_BYPASS_SECRET/credential" 2>/dev/null)
+fi
+
 # =============================================================================
 # Node.js (NVM)
 # =============================================================================

@@ -178,7 +178,10 @@
     "cubitt-canary": {
       "type": "remote",
       "url": "https://cubitt-env-canary-tilt-legal.vercel.app/mcp",
-      "enabled": true
+      "enabled": true,
+      "headers": {
+        "x-vercel-protection-bypass": "{env:VERCEL_BYPASS_SECRET}"
+      }
     }
   },
   "permission": {

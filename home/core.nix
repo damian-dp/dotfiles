@@ -316,6 +316,24 @@
         $DRY_RUN_CMD chmod 644 "$HOME/.claude/settings.json"
       fi
 
+      # Claude Code MCP servers (remove-then-add to ensure latest config)
+      if [ -x "$HOME/.local/bin/claude" ]; then
+        CLAUDE="$HOME/.local/bin/claude"
+        $CLAUDE mcp remove -s user deepwiki 2>/dev/null || true
+        $CLAUDE mcp add -s user -t http deepwiki https://mcp.deepwiki.com/mcp
+        $CLAUDE mcp remove -s user cubitt 2>/dev/null || true
+        $CLAUDE mcp add -s user -t http cubitt https://cubitt-docs.vercel.app/mcp
+        $CLAUDE mcp remove -s user cubitt-canary 2>/dev/null || true
+        VERCEL_BYPASS=$(op read "op://VM/VERCEL_BYPASS_SECRET/credential" 2>/dev/null) || true
+        if [ -n "$VERCEL_BYPASS" ]; then
+          $CLAUDE mcp add -s user -t http cubitt-canary https://cubitt-env-canary-tilt-legal.vercel.app/mcp \
+            -H "x-vercel-protection-bypass: $VERCEL_BYPASS"
+        else
+          echo "Warning: Could not read VERCEL_BYPASS_SECRET from 1Password, adding cubitt-canary without auth"
+          $CLAUDE mcp add -s user -t http cubitt-canary https://cubitt-env-canary-tilt-legal.vercel.app/mcp
+        fi
+      fi
+
       # OpenCode configs (all copy-once - OpenCode and plugins need write access)
       $DRY_RUN_CMD mkdir -p "$HOME/.config/opencode"
       if [ ! -f "$HOME/.config/opencode/opencode.json" ]; then
