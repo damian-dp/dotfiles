@@ -316,6 +316,13 @@
         $DRY_RUN_CMD chmod 644 "$HOME/.claude/settings.json"
       fi
 
+      # Fetch Vercel bypass secret from 1Password (used by cubitt-canary MCP in Claude Code & OpenCode)
+      if [ -x /opt/homebrew/bin/op ]; then
+        VERCEL_BYPASS=$(/opt/homebrew/bin/op read "op://VM/VERCEL_BYPASS_SECRET/credential" --account my 2>/dev/null) || true
+      else
+        VERCEL_BYPASS=$(op read "op://VM/VERCEL_BYPASS_SECRET/credential" 2>/dev/null) || true
+      fi
+
       # Claude Code MCP servers (remove-then-add to ensure latest config)
       if [ -x "$HOME/.local/bin/claude" ]; then
         CLAUDE="$HOME/.local/bin/claude"
@@ -324,11 +331,6 @@
         $CLAUDE mcp remove -s user cubitt 2>/dev/null || true
         $CLAUDE mcp add -s user -t http cubitt https://cubitt-docs.vercel.app/mcp
         $CLAUDE mcp remove -s user cubitt-canary 2>/dev/null || true
-        if [ -x /opt/homebrew/bin/op ]; then
-          VERCEL_BYPASS=$(/opt/homebrew/bin/op read "op://VM/VERCEL_BYPASS_SECRET/credential" --account my 2>/dev/null) || true
-        else
-          VERCEL_BYPASS=$(op read "op://VM/VERCEL_BYPASS_SECRET/credential" 2>/dev/null) || true
-        fi
         if [ -n "$VERCEL_BYPASS" ]; then
           $CLAUDE mcp add -s user -t http cubitt-canary https://cubitt-env-canary-tilt-legal.vercel.app/mcp \
             -H "x-vercel-protection-bypass: $VERCEL_BYPASS"
@@ -343,6 +345,10 @@
       if [ ! -f "$HOME/.config/opencode/opencode.json" ]; then
         $DRY_RUN_CMD cp ${./dotfiles/opencode/opencode.json} "$HOME/.config/opencode/opencode.json"
         $DRY_RUN_CMD chmod 644 "$HOME/.config/opencode/opencode.json"
+        # Bake Vercel bypass secret into config (reuse VERCEL_BYPASS from above)
+        if [ -n "$VERCEL_BYPASS" ]; then
+          $DRY_RUN_CMD sed -i "" "s/__VERCEL_BYPASS_SECRET__/$VERCEL_BYPASS/" "$HOME/.config/opencode/opencode.json"
+        fi
       fi
       if [ ! -f "$HOME/.config/opencode/oh-my-opencode.json" ]; then
         $DRY_RUN_CMD cp ${./dotfiles/opencode/oh-my-opencode.json} "$HOME/.config/opencode/oh-my-opencode.json"
