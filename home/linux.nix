@@ -22,8 +22,17 @@
     fi
   '';
 
-  # CLI wrappers for headless VMs (inject 1Password tokens)
+  # CLI wrappers and git hooks for headless VMs
   home.file = {
+    # Global git hooks (prevent commits/pushes to main)
+    ".config/git-hooks/pre-commit" = {
+      source = ./dotfiles/shell/git-hooks/pre-commit;
+      executable = true;
+    };
+    ".config/git-hooks/pre-push" = {
+      source = ./dotfiles/shell/git-hooks/pre-push;
+      executable = true;
+    };
     ".local/bin/vercel" = {
       source = ./dotfiles/shell/vercel-wrapper.sh;
       executable = true;

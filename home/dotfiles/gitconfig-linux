@@ -3,6 +3,10 @@
 [user]
 	signingkey = ~/.ssh/id_ed25519_signing.pub
 
+# Global hooks (prevent commits/pushes to main on VMs)
+[core]
+	hooksPath = ~/.config/git-hooks
+
 # Rewrite HTTPS GitHub URLs to SSH (tools that clone via HTTPS
 # will automatically use SSH auth instead)
 [url "git@github.com:"]

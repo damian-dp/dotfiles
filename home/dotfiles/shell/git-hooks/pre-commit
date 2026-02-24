@@ -1,0 +1,8 @@
+#!/bin/sh
+# Prevent commits directly to main/master on VMs
+branch="$(git symbolic-ref --short HEAD 2>/dev/null)"
+if [ "$branch" = "main" ] || [ "$branch" = "master" ]; then
+  echo "Blocked: cannot commit directly to '$branch' on VM."
+  echo "Create a feature branch: git checkout -b my-branch"
+  exit 1
+fi

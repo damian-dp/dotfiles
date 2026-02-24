@@ -1,0 +1,10 @@
+#!/bin/sh
+# Prevent pushing to main/master on VMs
+while read local_ref local_oid remote_ref remote_oid; do
+  remote_branch="${remote_ref#refs/heads/}"
+  if [ "$remote_branch" = "main" ] || [ "$remote_branch" = "master" ]; then
+    echo "Blocked: cannot push to '$remote_branch' from VM."
+    echo "Push to a feature branch and create a PR instead."
+    exit 1
+  fi
+done
