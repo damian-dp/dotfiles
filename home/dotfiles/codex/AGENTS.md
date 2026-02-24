@@ -1,7 +1,4 @@
-# Global Claude Instructions
-
-<!-- Add your global preferences for Claude CLI here -->
-<!-- These apply to all projects unless overridden by project-specific CLAUDE.md -->
+# Global Codex Instructions
 
 ## Preferences
 

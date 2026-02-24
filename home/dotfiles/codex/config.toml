@@ -1,0 +1,45 @@
+model = "gpt-5.3-codex"
+model_reasoning_effort = "xhigh"
+personality = "pragmatic"
+
+[mcp_servers.deepwiki]
+command = "npx"
+args = ["-y", "mcp-remote", "https://mcp.deepwiki.com/sse"]
+
+[mcp_servers.cubitt]
+command = "npx"
+args = ["-y", "mcp-remote", "https://cubitt-docs.vercel.app/mcp"]
+
+[mcp_servers.cubitt-canary]
+command = "npx"
+args = [
+  "-y",
+  "mcp-remote",
+  "https://cubitt-env-canary-tilt-legal.vercel.app/mcp",
+  "--header",
+  "x-vercel-protection-bypass: __VERCEL_BYPASS_SECRET__",
+]
+
+[mcp_servers.figma]
+command = "npx"
+args = ["-y", "mcp-remote", "http://127.0.0.1:3845/mcp"]
+
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp"]
+
+[mcp_servers.playwright]
+command = "npx"
+args = ["@playwright/mcp@latest"]
+
+[projects."/Users/damian/code/tilt/cubitt"]
+trust_level = "trusted"
+
+[projects."/Users/damian/code/tilt/mobius"]
+trust_level = "trusted"
+
+[projects."/Users/damian/code/dotfiles"]
+trust_level = "trusted"
+
+[features]
+rmcp_client = true

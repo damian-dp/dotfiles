@@ -107,6 +107,10 @@
     ".claude/CLAUDE.md".source = ./dotfiles/claude/CLAUDE.md;
     # Note: settings.json is copy-once (see activation script) because Claude writes permissions to it
 
+    # Codex CLI - AGENTS.md symlinked (instructions only, never written)
+    ".codex/AGENTS.md".source = ./dotfiles/codex/AGENTS.md;
+    # Note: config.toml is copy-once (see activation script) because Codex writes state to it
+
     # Warp launch configurations (symlinked - single source of truth)
     ".warp/launch_configurations/cubitt-mobius.yaml".source = ./dotfiles/warp/cubitt-mobius.yaml;
   };
@@ -316,7 +320,7 @@
         $DRY_RUN_CMD chmod 644 "$HOME/.claude/settings.json"
       fi
 
-      # Fetch Vercel bypass secret from 1Password (used by cubitt-canary MCP in Claude Code & OpenCode)
+      # Fetch Vercel bypass secret from 1Password (used by cubitt-canary MCP in Claude Code, Codex & OpenCode)
       if [ -x /opt/homebrew/bin/op ]; then
         VERCEL_BYPASS=$(/opt/homebrew/bin/op read "op://VM/VERCEL_BYPASS_SECRET/credential" --account my 2>/dev/null) || true
       else
@@ -337,6 +341,17 @@
         else
           echo "Warning: Could not read VERCEL_BYPASS_SECRET from 1Password, adding cubitt-canary without auth"
           $CLAUDE mcp add -s user -t http cubitt-canary https://cubitt-env-canary-tilt-legal.vercel.app/mcp
+        fi
+      fi
+
+      # Codex CLI config (copy-once - Codex writes state to this file)
+      if [ ! -f "$HOME/.codex/config.toml" ]; then
+        $DRY_RUN_CMD mkdir -p "$HOME/.codex"
+        $DRY_RUN_CMD cp ${./dotfiles/codex/config.toml} "$HOME/.codex/config.toml"
+        $DRY_RUN_CMD chmod 644 "$HOME/.codex/config.toml"
+        # Bake Vercel bypass secret into config (reuse VERCEL_BYPASS from above)
+        if [ -n "$VERCEL_BYPASS" ]; then
+          $DRY_RUN_CMD sed -i "" "s/__VERCEL_BYPASS_SECRET__/$VERCEL_BYPASS/" "$HOME/.codex/config.toml"
         fi
       fi
 

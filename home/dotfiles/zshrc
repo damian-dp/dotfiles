@@ -158,6 +158,7 @@ alias gl="git pull"
 
 # AI coding
 alias vibe-claude="claude --dangerously-skip-permissions"
+alias vibe-codex="codex --full-auto"
 
 # tmux
 alias ta="tmux attach -t"
@@ -199,6 +200,15 @@ dotfiles-sync() {
   if [[ -f "$src" ]] && ! diff -q "$src" "$dst" &>/dev/null; then
     cp "$src" "$dst"
     echo "Synced: claude/settings.json"
+    ((synced++))
+  fi
+
+  # Codex CLI config
+  local src="$HOME/.codex/config.toml"
+  local dst="$dotfiles/home/dotfiles/codex/config.toml"
+  if [[ -f "$src" ]] && ! diff -q "$src" "$dst" &>/dev/null; then
+    cp "$src" "$dst"
+    echo "Synced: codex/config.toml"
     ((synced++))
   fi
 
