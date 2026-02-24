@@ -360,7 +360,6 @@
       if [ -n "$VERCEL_BYPASS" ]; then
         ${pkgs.gnused}/bin/sed -i "s/__VERCEL_BYPASS_SECRET__/$VERCEL_BYPASS/" "$HOME/.config/opencode/opencode.json"
       fi
-      $DRY_RUN_CMD rm -f "$HOME/.config/opencode/oh-my-opencode.json"
       $DRY_RUN_CMD cp ${./dotfiles/opencode/package.json} "$HOME/.config/opencode/package.json"
       $DRY_RUN_CMD chmod 644 "$HOME/.config/opencode/package.json"
 
