@@ -90,18 +90,22 @@ fi
 #        vm --tunnel 3000      (forward port 3000)
 #        vm --tunnel 3000 --tunnel 5173  (forward multiple ports)
 vm() {
-  local tunnel_args=()
+  local tunnel_args=() ports=()
   local args=()
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --tunnel|-t)
         shift
         tunnel_args+=(-L "$1:localhost:$1")
+        ports+=("$1")
         shift
         ;;
       *) args+=("$1"); shift ;;
     esac
   done
+  if (( ${#ports[@]} )); then
+    echo "Tunneling: ${(j:, :)ports/#/localhost:}"
+  fi
   ssh vm "${tunnel_args[@]}" "${args[@]}"
 }
 
