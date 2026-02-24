@@ -197,7 +197,7 @@ alias tn="tmux new -s"
 [[ -f "$HOME/.config/shell/commit.sh" ]] && source "$HOME/.config/shell/commit.sh"
 
 # dotfiles-sync - copy live writable configs back to dotfiles repo
-# These are copy-once files that apps write to at runtime
+# These are overwritten on rebuild but may drift at runtime
 dotfiles-sync() {
   local dotfiles="${DOTFILES:-$HOME/code/dotfiles}"
   if [[ ! -d "$dotfiles" ]]; then
@@ -209,7 +209,7 @@ dotfiles-sync() {
   local synced=0
 
   # OpenCode configs
-  for f in opencode.json oh-my-opencode.json package.json; do
+  for f in opencode.json package.json; do
     local src="$HOME/.config/opencode/$f"
     local dst="$dotfiles/home/dotfiles/opencode/$f"
     if [[ -f "$src" ]] && ! diff -q "$src" "$dst" &>/dev/null; then
