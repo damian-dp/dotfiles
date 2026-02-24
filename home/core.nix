@@ -81,11 +81,10 @@
         	IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 
         # =============================================================================
-        # VM Port Forwarding (macOS only)
+        # VM (macOS only - port forwarding via vm() shell function)
         # =============================================================================
         Host vm
         	HostName dev-vm-damian.taild53693.ts.net
-        	LocalForward 3000 localhost:3000
       ''
       + lib.optionalString pkgs.stdenv.isLinux ''
 

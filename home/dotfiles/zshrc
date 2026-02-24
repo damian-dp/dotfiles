@@ -85,6 +85,26 @@ fi
 # =============================================================================
 # Tools
 # =============================================================================
+# vm - SSH to VM with optional port forwarding
+# Usage: vm                    (plain SSH)
+#        vm --tunnel 3000      (forward port 3000)
+#        vm --tunnel 3000 --tunnel 5173  (forward multiple ports)
+vm() {
+  local tunnel_args=()
+  local args=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --tunnel|-t)
+        shift
+        tunnel_args+=(-L "$1:localhost:$1")
+        shift
+        ;;
+      *) args+=("$1"); shift ;;
+    esac
+  done
+  ssh vm "${tunnel_args[@]}" "${args[@]}"
+}
+
 # opencode
 export OPENCODE_EXPERIMENTAL="true"
 [[ -d "$HOME/.opencode/bin" ]] && export PATH="$HOME/.opencode/bin:$PATH"
