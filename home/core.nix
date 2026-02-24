@@ -318,10 +318,14 @@
       $DRY_RUN_CMD chmod 644 "$HOME/.claude/settings.json"
 
       # Fetch Vercel bypass secret from 1Password (used by cubitt-canary MCP in Claude Code, Codex & OpenCode)
+      # Activation scripts run in a clean env, so load the service account token from disk if needed
+      if [ -z "$OP_SERVICE_ACCOUNT_TOKEN" ] && [ -f "$HOME/.config/op/service-account-token" ]; then
+        export OP_SERVICE_ACCOUNT_TOKEN=$(cat "$HOME/.config/op/service-account-token")
+      fi
       if [ -x /opt/homebrew/bin/op ]; then
         VERCEL_BYPASS=$(/opt/homebrew/bin/op read "op://VM/VERCEL_BYPASS_SECRET/credential" --account my 2>/dev/null) || true
       else
-        VERCEL_BYPASS=$(op read "op://VM/VERCEL_BYPASS_SECRET/credential" 2>/dev/null) || true
+        VERCEL_BYPASS=$(/usr/bin/op read "op://VM/VERCEL_BYPASS_SECRET/credential" 2>/dev/null) || true
       fi
 
       # Claude Code MCP servers (remove-then-add to ensure latest config)
