@@ -97,19 +97,19 @@
       '';
     ".tmux.conf".source = ./dotfiles/tmux.conf;
 
-    # OpenCode configs are all copy-once (see activation script)
-    # OpenCode and its plugins need write access to these files
+    # OpenCode configs are overwritten every rebuild (see activation script)
+    # They need to be writable at runtime so they can't be symlinked
 
     # Shell functions
     ".config/shell/commit.sh".source = ./dotfiles/shell/commit.sh;
 
     # Claude CLI - CLAUDE.md symlinked (instructions only, never written)
     ".claude/CLAUDE.md".source = ./dotfiles/claude/CLAUDE.md;
-    # Note: settings.json is copy-once (see activation script) because Claude writes permissions to it
+    # Note: settings.json is overwritten every rebuild (see activation script)
 
     # Codex CLI - AGENTS.md symlinked (instructions only, never written)
     ".codex/AGENTS.md".source = ./dotfiles/codex/AGENTS.md;
-    # Note: config.toml is copy-once (see activation script) because Codex writes state to it
+    # Note: config.toml is overwritten every rebuild (see activation script)
 
     # Warp launch configurations (symlinked - single source of truth)
     ".warp/launch_configurations/cubitt-mobius.yaml".source = ./dotfiles/warp/cubitt-mobius.yaml;
@@ -310,15 +310,13 @@
     '';
 
     # =========================================================================
-    # Writable App Configs (copy-once - apps write to these files)
+    # Writable App Configs (overwritten every rebuild - dotfiles is source of truth)
     # =========================================================================
     copyWritableConfigs = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      # Claude CLI settings (writes permissions)
-      if [ ! -f "$HOME/.claude/settings.json" ]; then
-        $DRY_RUN_CMD mkdir -p "$HOME/.claude"
-        $DRY_RUN_CMD cp ${./dotfiles/claude/settings.json} "$HOME/.claude/settings.json"
-        $DRY_RUN_CMD chmod 644 "$HOME/.claude/settings.json"
-      fi
+      # Claude CLI settings
+      $DRY_RUN_CMD mkdir -p "$HOME/.claude"
+      $DRY_RUN_CMD cp ${./dotfiles/claude/settings.json} "$HOME/.claude/settings.json"
+      $DRY_RUN_CMD chmod 644 "$HOME/.claude/settings.json"
 
       # Fetch Vercel bypass secret from 1Password (used by cubitt-canary MCP in Claude Code, Codex & OpenCode)
       if [ -x /opt/homebrew/bin/op ]; then
@@ -344,35 +342,25 @@
         fi
       fi
 
-      # Codex CLI config (copy-once - Codex writes state to this file)
-      if [ ! -f "$HOME/.codex/config.toml" ]; then
-        $DRY_RUN_CMD mkdir -p "$HOME/.codex"
-        $DRY_RUN_CMD cp ${./dotfiles/codex/config.toml} "$HOME/.codex/config.toml"
-        $DRY_RUN_CMD chmod 644 "$HOME/.codex/config.toml"
-        # Bake Vercel bypass secret into config (reuse VERCEL_BYPASS from above)
-        if [ -n "$VERCEL_BYPASS" ]; then
-          $DRY_RUN_CMD sed -i "" "s/__VERCEL_BYPASS_SECRET__/$VERCEL_BYPASS/" "$HOME/.codex/config.toml"
-        fi
+      # Codex CLI config
+      $DRY_RUN_CMD mkdir -p "$HOME/.codex"
+      $DRY_RUN_CMD cp ${./dotfiles/codex/config.toml} "$HOME/.codex/config.toml"
+      $DRY_RUN_CMD chmod 644 "$HOME/.codex/config.toml"
+      if [ -n "$VERCEL_BYPASS" ]; then
+        ${pkgs.gnused}/bin/sed -i "s/__VERCEL_BYPASS_SECRET__/$VERCEL_BYPASS/" "$HOME/.codex/config.toml"
       fi
 
-      # OpenCode configs (all copy-once - OpenCode and plugins need write access)
+      # OpenCode configs
       $DRY_RUN_CMD mkdir -p "$HOME/.config/opencode"
-      if [ ! -f "$HOME/.config/opencode/opencode.json" ]; then
-        $DRY_RUN_CMD cp ${./dotfiles/opencode/opencode.json} "$HOME/.config/opencode/opencode.json"
-        $DRY_RUN_CMD chmod 644 "$HOME/.config/opencode/opencode.json"
-        # Bake Vercel bypass secret into config (reuse VERCEL_BYPASS from above)
-        if [ -n "$VERCEL_BYPASS" ]; then
-          $DRY_RUN_CMD sed -i "" "s/__VERCEL_BYPASS_SECRET__/$VERCEL_BYPASS/" "$HOME/.config/opencode/opencode.json"
-        fi
+      $DRY_RUN_CMD cp ${./dotfiles/opencode/opencode.json} "$HOME/.config/opencode/opencode.json"
+      $DRY_RUN_CMD chmod 644 "$HOME/.config/opencode/opencode.json"
+      if [ -n "$VERCEL_BYPASS" ]; then
+        ${pkgs.gnused}/bin/sed -i "s/__VERCEL_BYPASS_SECRET__/$VERCEL_BYPASS/" "$HOME/.config/opencode/opencode.json"
       fi
-      if [ ! -f "$HOME/.config/opencode/oh-my-opencode.json" ]; then
-        $DRY_RUN_CMD cp ${./dotfiles/opencode/oh-my-opencode.json} "$HOME/.config/opencode/oh-my-opencode.json"
-        $DRY_RUN_CMD chmod 644 "$HOME/.config/opencode/oh-my-opencode.json"
-      fi
-      if [ ! -f "$HOME/.config/opencode/package.json" ]; then
-        $DRY_RUN_CMD cp ${./dotfiles/opencode/package.json} "$HOME/.config/opencode/package.json"
-        $DRY_RUN_CMD chmod 644 "$HOME/.config/opencode/package.json"
-      fi
+      $DRY_RUN_CMD cp ${./dotfiles/opencode/oh-my-opencode.json} "$HOME/.config/opencode/oh-my-opencode.json"
+      $DRY_RUN_CMD chmod 644 "$HOME/.config/opencode/oh-my-opencode.json"
+      $DRY_RUN_CMD cp ${./dotfiles/opencode/package.json} "$HOME/.config/opencode/package.json"
+      $DRY_RUN_CMD chmod 644 "$HOME/.config/opencode/package.json"
 
     '';
   };
