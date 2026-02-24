@@ -96,8 +96,9 @@ vm() {
     case "$1" in
       --tunnel|-t)
         shift
-        tunnel_args+=(-L "$1:localhost:$1")
-        ports+=("$1")
+        local port="$1"
+        tunnel_args+=(-L "${port}:localhost:${port}")
+        ports+=("$port")
         shift
         ;;
       *) args+=("$1"); shift ;;
