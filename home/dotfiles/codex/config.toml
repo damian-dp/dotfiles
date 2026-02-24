@@ -34,6 +34,7 @@ args = ["-y", "@upstash/context7-mcp"]
 command = "npx"
 args = ["@playwright/mcp@latest"]
 
+# macOS paths
 [projects."/Users/damian/code/tilt/cubitt"]
 trust_level = "trusted"
 
@@ -41,6 +42,16 @@ trust_level = "trusted"
 trust_level = "trusted"
 
 [projects."/Users/damian/code/dotfiles"]
+trust_level = "trusted"
+
+# Linux VM paths
+[projects."/home/damian/code/tilt/cubitt"]
+trust_level = "trusted"
+
+[projects."/home/damian/code/tilt/mobius"]
+trust_level = "trusted"
+
+[projects."/home/damian/code/dotfiles"]
 trust_level = "trusted"
 
 [features]
