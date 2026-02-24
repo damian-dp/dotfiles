@@ -102,6 +102,7 @@ dotfiles/
 │       │   └── vercel-wrapper.sh # Injects Vercel token on Linux VMs
 │       ├── opencode/         # OpenCode config files
 │       ├── claude/           # Claude CLI config
+│       ├── codex/            # Codex CLI config
 │       └── warp/             # Warp launch configurations
 │
 ├── darwin/
@@ -228,6 +229,7 @@ For commits to show as "Verified" on GitHub:
 | `tl` | `tmux ls` |
 | `tn` | `tmux new -s` |
 | `vibe-claude` | `claude --dangerously-skip-permissions` |
+| `vibe-codex` | `codex --full-auto` |
 | `signin` | Sign in to 1Password CLI (personal + work accounts) |
 
 ## Text Replacements (macOS)
