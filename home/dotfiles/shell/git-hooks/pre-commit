@@ -1,5 +1,10 @@
 #!/bin/sh
 # Prevent commits directly to main/master on VMs
+
+# Allow dotfiles repo (managed directly on main)
+repo="$(git rev-parse --show-toplevel 2>/dev/null)"
+case "$repo" in */dotfiles) exit 0 ;; esac
+
 branch="$(git symbolic-ref --short HEAD 2>/dev/null)"
 if [ "$branch" = "main" ] || [ "$branch" = "master" ]; then
   echo "Blocked: cannot commit directly to '$branch' on VM."
