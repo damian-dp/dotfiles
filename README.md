@@ -89,20 +89,23 @@ dotfiles/
 │   ├── modules/
 │   │   └── opencode.nix      # OpenCode systemd service module
 │   └── dotfiles/
-│       ├── zshrc             # Shell config (1Password agent, PATH, aliases)
+│       ├── zshrc             # Shell config (1Password agent, PATH, aliases, functions)
 │       ├── p10k.zsh          # Powerlevel10k theme
 │       ├── gitconfig-macos   # macOS 1Password signing path
-│       ├── gitconfig-linux   # Linux local key signing path
+│       ├── gitconfig-linux   # Linux key signing path + global git hooks
 │       ├── ssh_config        # SSH config
 │       ├── ghostty.conf      # Terminal config
 │       ├── tmux.conf         # Tmux config
 │       ├── shell/
 │       │   ├── commit.sh         # Claude-powered commit messages
 │       │   ├── pnpm-wrapper.sh   # Injects GH_NPM_TOKEN on Linux VMs
-│       │   └── vercel-wrapper.sh # Injects Vercel token on Linux VMs
+│       │   ├── vercel-wrapper.sh # Injects Vercel token on Linux VMs
+│       │   └── git-hooks/        # Global git hooks (Linux VMs only)
+│       │       ├── pre-commit    # Blocks commits to main/master
+│       │       └── pre-push      # Blocks pushes to main/master
+│       ├── claude/           # Claude Code config (CLAUDE.md + settings.json)
+│       ├── codex/            # Codex CLI config (AGENTS.md + config.toml)
 │       ├── opencode/         # OpenCode config files
-│       ├── claude/           # Claude CLI config
-│       ├── codex/            # Codex CLI config
 │       └── warp/             # Warp launch configurations
 │
 ├── darwin/
@@ -148,11 +151,57 @@ dotfiles/
 - **Docker**: docker + docker-compose
 - **Caddy**: copied with `cap_net_bind_service` for port 80 binding
 - **CLI wrappers**: `pnpm` and `vercel` wrappers that inject 1Password tokens
+- **Git hooks**: global hooks prevent commits and pushes to `main`/`master` branches
 - **Access**: via Tailscale (no public ports)
 
-## OpenCode Shell Function
+## AI Coding Tools
 
-The `opencode` wrapper auto-connects to the VM server when reachable, falling back to local:
+Three AI coding CLIs are installed outside Nix (for auto-updates) with configs managed by dotfiles.
+
+### Permissions
+
+All tools are configured for maximum autonomy by default:
+
+| Tool | Setting | Config File |
+|------|---------|-------------|
+| **Claude Code** | `"defaultMode": "bypassPermissions"` | `claude/settings.json` |
+| **Codex** | `approval_policy = "never"` + `sandbox_mode = "danger-full-access"` | `codex/config.toml` |
+| **OpenCode** | `"permission": "allow"` | `opencode/opencode.json` |
+
+### Global Instructions
+
+| Tool | File | Deployed To |
+|------|------|-------------|
+| **Claude Code** | `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` (symlink, read-only) |
+| **Codex** | `codex/AGENTS.md` | `~/.codex/AGENTS.md` (symlink, read-only) |
+
+### MCP Servers
+
+Each tool has its own MCP config format. The shared servers are:
+
+| Server | Description |
+|--------|-------------|
+| **deepwiki** | AI-powered GitHub repo documentation |
+| **cubitt** | Cubitt design system docs |
+| **cubitt-canary** | Cubitt canary environment (with Vercel bypass auth) |
+
+Codex also has: figma, context7, playwright.
+
+The Vercel bypass secret is fetched from 1Password during each rebuild and baked into configs automatically.
+
+## Shell Functions
+
+### `vm` — SSH to Linux VM
+
+```bash
+vm                              # plain SSH
+vm --tunnel 3000                # forward port 3000
+vm -t 3000 -t 5173             # forward multiple ports
+```
+
+Prints tunneled ports before connecting. The SSH host `vm` resolves via Tailscale.
+
+### `opencode` — Smart OpenCode Wrapper
 
 ```bash
 opencode              # auto-detect: VM if reachable, else local
@@ -167,13 +216,22 @@ When connecting to the VM from a local project directory (`~/code/tilt/cubitt`, 
 
 Connection mode is logged to `~/.local/state/opencode.log`.
 
+### `dotfiles-sync` — Sync Live Configs Back to Repo
+
+Copies modified writable configs (Claude, Codex, OpenCode) from their live locations back to the dotfiles repo for review and commit.
+
+```bash
+dotfiles-sync
+cd ~/code/dotfiles && git diff
+```
+
 ## Config Management
 
 | Method | Description | Use Case |
 |--------|-------------|----------|
 | **Nix module** | Declarative config in `.nix` files | Apps with home-manager modules (git, zed) |
-| **Symlink** | Read-only link to nix store | Configs that don't change (keybindings, themes) |
-| **Copy-once** | Copied on first run, then writable | Apps that write state/permissions to config |
+| **Symlink** | Read-only link to nix store | Configs that don't change (CLAUDE.md, AGENTS.md, keybindings) |
+| **Overwrite on rebuild** | Copied from dotfiles every rebuild | AI tool configs (Claude, Codex, OpenCode) — dotfiles is source of truth |
 
 ## 1Password Secrets (VM)
 
@@ -186,6 +244,7 @@ The VM uses a 1Password **Service Account** scoped to the VM vault only (no acce
 | SSH signing key | `GH_SSH_KEY` | Extracted to `~/.ssh/id_ed25519_signing` (needed on disk for git/ssh) |
 | GitHub OAuth | (device code flow) | `gh auth login --web` during bootstrap, stored in `~/.config/gh/hosts.yml` |
 | Vercel token | `VERCEL_TOKEN` | Loaded from 1Password on first `vercel` command each session |
+| Vercel bypass secret | `VERCEL_BYPASS_SECRET` | Baked into Claude/Codex/OpenCode configs at rebuild time |
 
 The service account token is the only secret saved to disk by the bootstrap. It's auto-loaded in every shell session, enabling `op read "op://VM/..."` to fetch other secrets on demand.
 
@@ -205,6 +264,8 @@ Uses 1Password desktop app's built-in `op-ssh-sign` binary. Requires:
 Uses a local SSH key at `~/.ssh/id_ed25519_signing`, extracted from 1Password during bootstrap. The 1Password SSH agent and `op-ssh-sign` require the desktop GUI app, so headless VMs use a local key file instead.
 
 The `gitconfig-linux` include points `user.signingkey` at the local `.pub` file.
+
+Global git hooks (`~/.config/git-hooks/`) prevent direct commits and pushes to `main`/`master` branches on VMs. Create a feature branch and PR instead.
 
 ### GitHub Setup
 
