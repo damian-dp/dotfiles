@@ -312,6 +312,13 @@
     # Writable App Configs (overwritten every rebuild - dotfiles is source of truth)
     # =========================================================================
     copyWritableConfigs = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      # Cursor editor settings (copied, not symlinked - VS Code atomic writes break symlinks)
+      $DRY_RUN_CMD mkdir -p "$HOME/Library/Application Support/Cursor/User"
+      $DRY_RUN_CMD cp ${../configs/cursor/settings.json} "$HOME/Library/Application Support/Cursor/User/settings.json"
+      $DRY_RUN_CMD chmod 644 "$HOME/Library/Application Support/Cursor/User/settings.json"
+      $DRY_RUN_CMD cp ${../configs/cursor/keybindings.json} "$HOME/Library/Application Support/Cursor/User/keybindings.json"
+      $DRY_RUN_CMD chmod 644 "$HOME/Library/Application Support/Cursor/User/keybindings.json"
+
       # Claude CLI settings
       $DRY_RUN_CMD mkdir -p "$HOME/.claude"
       $DRY_RUN_CMD cp ${./dotfiles/claude/settings.json} "$HOME/.claude/settings.json"
@@ -319,7 +326,7 @@
 
       # Fetch Vercel bypass secret from 1Password (used by cubitt-canary MCP in Claude Code, Codex & OpenCode)
       # Activation scripts run in a clean env, so load the service account token from disk if needed
-      if [ -z "$OP_SERVICE_ACCOUNT_TOKEN" ] && [ -f "$HOME/.config/op/service-account-token" ]; then
+      if [ -z "''${OP_SERVICE_ACCOUNT_TOKEN:-}" ] && [ -f "$HOME/.config/op/service-account-token" ]; then
         export OP_SERVICE_ACCOUNT_TOKEN=$(cat "$HOME/.config/op/service-account-token")
       fi
       if [ -x /opt/homebrew/bin/op ]; then

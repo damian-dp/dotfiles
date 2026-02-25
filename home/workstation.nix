@@ -18,16 +18,15 @@
   # App Configurations (symlinked to nix store - portable but read-only)
   # =============================================================================
   # Edit source files in dotfiles repo, then rebuild to apply changes
+  # Note: Cursor settings are in core.nix activation script (needs writable files)
 
   # Ghostty terminal
   home.file."Library/Application Support/com.mitchellh.ghostty/config".source =
     ../home/dotfiles/ghostty.conf;
 
-  # Cursor editor (no home-manager module yet)
-  home.file."Library/Application Support/Cursor/User/settings.json".source =
-    ../configs/cursor/settings.json;
-  home.file."Library/Application Support/Cursor/User/keybindings.json".source =
-    ../configs/cursor/keybindings.json;
+  # Cursor editor - deployed via activation script (not symlinked)
+  # VS Code/Cursor uses atomic writes which break symlinks, so we copy instead
+  # See core.nix copyWritableConfigs activation script
 
   # =============================================================================
   # Zed Editor (using built-in module - portable)
