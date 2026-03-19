@@ -171,7 +171,7 @@
     },
     "cubitt": {
       "type": "remote",
-      "url": "https://cubitt-docs.vercel.app/mcp",
+      "url": "https://cubitt.tilt.legal/mcp",
       "enabled": true
     },
     "cubitt-canary": {

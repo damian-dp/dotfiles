@@ -10,7 +10,7 @@ args = ["-y", "mcp-remote", "https://mcp.deepwiki.com/sse"]
 
 [mcp_servers.cubitt]
 command = "npx"
-args = ["-y", "mcp-remote", "https://cubitt-docs.vercel.app/mcp"]
+args = ["-y", "mcp-remote", "https://cubitt.tilt.legal/mcp"]
 
 [mcp_servers.cubitt-canary]
 command = "npx"

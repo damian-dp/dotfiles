@@ -41,7 +41,7 @@
     uv
 
     # Node.js + package managers
-    nodejs
+    nodejs_22
     pnpm
 
     # LSP servers (used by Claude Code plugins)
@@ -341,7 +341,7 @@
         $CLAUDE mcp remove -s user deepwiki 2>/dev/null || true
         $CLAUDE mcp add -s user -t http deepwiki https://mcp.deepwiki.com/mcp
         $CLAUDE mcp remove -s user cubitt 2>/dev/null || true
-        $CLAUDE mcp add -s user -t http cubitt https://cubitt-docs.vercel.app/mcp
+        $CLAUDE mcp add -s user -t http cubitt https://cubitt.tilt.legal/mcp
         $CLAUDE mcp remove -s user cubitt-canary 2>/dev/null || true
         if [ -n "$VERCEL_BYPASS" ]; then
           $CLAUDE mcp add -s user -t http cubitt-canary https://cubitt-env-canary-tilt-legal.vercel.app/mcp \
