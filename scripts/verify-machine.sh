@@ -92,7 +92,7 @@ check_psql_17() {
 
   local version
   version="$(psql --version 2>/dev/null || true)"
-  if [[ "$version" =~ PostgreSQL\ 17(\.|$) ]]; then
+  if [[ "$version" =~ PostgreSQL\)\ 17(\.|$) ]]; then
     pass "psql is PostgreSQL 17 ($version)"
   else
     fail "psql is not PostgreSQL 17 (${version:-unknown version})"
@@ -128,7 +128,7 @@ check_homebrew_cask() {
     return
   fi
 
-  if brew list --cask 2>/dev/null | grep -qx "$cask"; then
+  if brew list --cask "$cask" &>/dev/null; then
     pass "Homebrew cask $cask is installed"
   else
     fail "Homebrew cask $cask is not installed"
