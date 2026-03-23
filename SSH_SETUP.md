@@ -225,7 +225,7 @@ ssh -o IdentitiesOnly=yes -i ~/.ssh/specific_key.pub user@host
 sudo chsh -s /bin/bash username
 
 # Then run home-manager switch to apply the fixed config
-cd ~/dotfiles && git pull
+cd ~/code/dotfiles && git pull
 nix run home-manager -- switch --flake .#damian@linux
 ```
 

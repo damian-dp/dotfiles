@@ -2,6 +2,11 @@
 
 Reproducible development environment using Nix flakes, home-manager, and nix-darwin.
 
+This repo intentionally supports two real machine types only:
+
+- macOS workstations via `nix-darwin`
+- Linux machines via standalone Home Manager bootstrap
+
 ## Overview
 
 Four configurations:
@@ -149,9 +154,6 @@ dotfiles/
 │   ├── with-secrets.sh       # Run commands with secret refs resolved by 1Password
 │   ├── render-secret-configs.sh # Render runtime configs from secret-backed templates
 │   └── verify-machine.sh     # Cross-platform post-setup verification checks
-│
-├── nixos/
-│   └── configuration.nix     # NixOS system config (if running NixOS)
 │
 ├── configs/                  # Workstation app configs (macOS)
 │   └── cursor/
