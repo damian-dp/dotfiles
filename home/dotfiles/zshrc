@@ -38,8 +38,12 @@ fi
 # VM uses pnpm wrapper at ~/.local/bin/pnpm instead (no shell startup delay)
 if [[ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]]; then
   gh_npm_token() {
+    local dotfiles="${DOTFILES:-$HOME/code/dotfiles}"
+    local with_secrets="$dotfiles/scripts/with-secrets.sh"
     if [[ -z "$GH_NPM_TOKEN" ]]; then
-      export GH_NPM_TOKEN=$(op read "op://Employee/4xwfq5opt6k5e6vlpskxpn5vaa/token" 2>/dev/null)
+      if [[ -x "$with_secrets" ]]; then
+        export GH_NPM_TOKEN="$("$with_secrets" mac --no-masking -- printenv GH_NPM_TOKEN 2>/dev/null)"
+      fi
     fi
     echo "$GH_NPM_TOKEN"
   }
@@ -188,6 +192,11 @@ alias tn="tmux new -s"
 # commit() - Claude-powered commit message generator
 [[ -f "$HOME/.config/shell/commit.sh" ]] && source "$HOME/.config/shell/commit.sh"
 
+refresh-secret-configs() {
+  local dotfiles="${DOTFILES:-$HOME/code/dotfiles}"
+  "$dotfiles/scripts/render-secret-configs.sh" "$@"
+}
+
 # dotfiles-sync - copy live writable configs back to dotfiles repo
 # These are overwritten on rebuild but may drift at runtime
 dotfiles-sync() {
@@ -220,7 +229,7 @@ dotfiles-sync() {
   if [[ -f "$HOME/.codex/config.toml" || -f "$HOME/.config/opencode/opencode.json" ]]; then
     echo ""
     echo "Codex/OpenCode live configs are not synced automatically."
-    echo "They contain runtime-expanded secrets and should be reviewed manually."
+    echo "They are rendered from secret-backed templates and should be reviewed manually."
   fi
 }
 

@@ -39,6 +39,7 @@
 
     # Python tooling
     uv
+    gettext
 
     # Node.js + package managers
     nodejs_22
@@ -100,8 +101,8 @@
       '';
     ".tmux.conf".source = ./dotfiles/tmux.conf;
 
-    # OpenCode configs are overwritten every rebuild (see activation script)
-    # They need to be writable at runtime so they can't be symlinked
+    # Codex/OpenCode runtime configs are rendered explicitly by
+    # scripts/render-secret-configs.sh because they contain secret-backed values.
 
     # Shell functions
     ".config/shell/commit.sh".source = ./dotfiles/shell/commit.sh;
@@ -112,7 +113,7 @@
 
     # Codex CLI - AGENTS.md symlinked (instructions only, never written)
     ".codex/AGENTS.md".source = ./dotfiles/codex/AGENTS.md;
-    # Note: config.toml is overwritten every rebuild (see activation script)
+    # Note: config.toml is rendered explicitly by scripts/render-secret-configs.sh
 
     # Warp launch configurations (symlinked - single source of truth)
     ".warp/launch_configurations/cubitt-mobius.yaml".source = ./dotfiles/warp/cubitt-mobius.yaml;
@@ -286,35 +287,8 @@
       $DRY_RUN_CMD cp ${./dotfiles/claude/settings.json} "$HOME/.claude/settings.json"
       $DRY_RUN_CMD chmod 644 "$HOME/.claude/settings.json"
 
-      # Fetch Vercel bypass secret from 1Password (used by cubitt-canary MCP in Claude Code, Codex & OpenCode)
-      # Activation scripts run in a clean env, so load the service account token from disk if needed
-      if [ -z "''${OP_SERVICE_ACCOUNT_TOKEN:-}" ] && [ -f "$HOME/.config/op/service-account-token" ]; then
-        export OP_SERVICE_ACCOUNT_TOKEN=$(cat "$HOME/.config/op/service-account-token")
-      fi
-      VERCEL_BYPASS=""
-      if command -v op >/dev/null 2>&1; then
-        if [ "$(uname -s)" = "Darwin" ]; then
-          VERCEL_BYPASS=$(op read "op://VM/VERCEL_BYPASS_SECRET/credential" --account my 2>/dev/null) || true
-        else
-          VERCEL_BYPASS=$(op read "op://VM/VERCEL_BYPASS_SECRET/credential" 2>/dev/null) || true
-        fi
-      fi
-
-      # Codex CLI config
-      $DRY_RUN_CMD mkdir -p "$HOME/.codex"
-      $DRY_RUN_CMD cp ${./dotfiles/codex/config.toml} "$HOME/.codex/config.toml"
-      $DRY_RUN_CMD chmod 644 "$HOME/.codex/config.toml"
-      if [ -n "$VERCEL_BYPASS" ]; then
-        ${pkgs.gnused}/bin/sed -i "s/__VERCEL_BYPASS_SECRET__/$VERCEL_BYPASS/" "$HOME/.codex/config.toml"
-      fi
-
-      # OpenCode configs
+      # OpenCode package metadata (runtime config is rendered explicitly)
       $DRY_RUN_CMD mkdir -p "$HOME/.config/opencode"
-      $DRY_RUN_CMD cp ${./dotfiles/opencode/opencode.json} "$HOME/.config/opencode/opencode.json"
-      $DRY_RUN_CMD chmod 644 "$HOME/.config/opencode/opencode.json"
-      if [ -n "$VERCEL_BYPASS" ]; then
-        ${pkgs.gnused}/bin/sed -i "s/__VERCEL_BYPASS_SECRET__/$VERCEL_BYPASS/" "$HOME/.config/opencode/opencode.json"
-      fi
       $DRY_RUN_CMD cp ${./dotfiles/opencode/package.json} "$HOME/.config/opencode/package.json"
       $DRY_RUN_CMD chmod 644 "$HOME/.config/opencode/package.json"
 

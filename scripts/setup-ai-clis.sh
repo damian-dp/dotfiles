@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+WITH_SECRETS="$REPO_ROOT/scripts/with-secrets.sh"
 
 export PATH="$HOME/.local/bin:$HOME/.opencode/bin:$HOME/.bun/bin:$PATH"
 
@@ -38,18 +39,12 @@ if ! command -v codex >/dev/null 2>&1 && command -v npm >/dev/null 2>&1; then
   npm install -g @openai/codex
 fi
 
-if [[ -z "${OP_SERVICE_ACCOUNT_TOKEN:-}" && -f "$HOME/.config/op/service-account-token" ]]; then
-  export OP_SERVICE_ACCOUNT_TOKEN
-  OP_SERVICE_ACCOUNT_TOKEN="$(cat "$HOME/.config/op/service-account-token")"
-fi
+echo "Rendering secret-backed runtime configs..."
+"$REPO_ROOT/scripts/render-secret-configs.sh"
 
 VERCEL_BYPASS=""
-if command -v op >/dev/null 2>&1; then
-  if [[ "$(uname -s)" == "Darwin" ]]; then
-    VERCEL_BYPASS="$(op read "op://VM/VERCEL_BYPASS_SECRET/credential" --account my 2>/dev/null || true)"
-  else
-    VERCEL_BYPASS="$(op read "op://VM/VERCEL_BYPASS_SECRET/credential" 2>/dev/null || true)"
-  fi
+if [[ -x "$WITH_SECRETS" ]]; then
+  VERCEL_BYPASS="$("$WITH_SECRETS" auto --no-masking -- printenv VERCEL_BYPASS_SECRET 2>/dev/null || true)"
 fi
 
 if [[ -x "$HOME/.local/bin/claude" ]]; then
@@ -70,5 +65,5 @@ fi
 
 echo ""
 echo "External AI CLI setup complete."
-echo "If Home Manager just rebuilt config templates, the live files now match the repo state in:"
+echo "Runtime AI configs and CLI installs are now aligned with the repo state in:"
 echo "  $REPO_ROOT/home/dotfiles"

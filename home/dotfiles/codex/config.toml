@@ -19,7 +19,7 @@ args = [
   "mcp-remote",
   "https://cubitt-env-canary-tilt-legal.vercel.app/mcp",
   "--header",
-  "x-vercel-protection-bypass: __VERCEL_BYPASS_SECRET__",
+  "x-vercel-protection-bypass: ${VERCEL_BYPASS_SECRET}",
 ]
 
 [mcp_servers.figma]

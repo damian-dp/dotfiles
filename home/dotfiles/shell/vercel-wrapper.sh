@@ -1,28 +1,39 @@
 #!/bin/bash
 # Vercel CLI wrapper for headless VMs
-# Fetches token from 1Password and passes --token flag to CLI
+# Resolves Vercel auth through the shared secret reference registry
 # Installed to ~/.local/bin/vercel, shadows ~/.bun/bin/vercel
 
-set -e
+set -euo pipefail
 
-# Load OP service account token if not in env
-if [[ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]] && [[ -f "$HOME/.config/op/service-account-token" ]]; then
-  export OP_SERVICE_ACCOUNT_TOKEN=$(cat "$HOME/.config/op/service-account-token")
-fi
-
-# Fetch Vercel token from 1Password
-if [[ -n "$OP_SERVICE_ACCOUNT_TOKEN" ]] && [[ -z "$VERCEL_TOKEN" ]]; then
-  VERCEL_TOKEN=$(op read "op://VM/VERCEL_TOKEN/token" 2>/dev/null)
-fi
+DOTFILES="${DOTFILES:-$HOME/code/dotfiles}"
+WITH_SECRETS="$DOTFILES/scripts/with-secrets.sh"
+REAL_VERCEL="$HOME/.bun/bin/vercel"
 
 # Default scope to tilt-legal (override with --scope)
-SCOPE_ARGS=()
-if [[ "$*" != *"--scope"* ]]; then
-  SCOPE_ARGS=(--scope tilt-legal)
+if [[ -x "$WITH_SECRETS" ]]; then
+  exec "$WITH_SECRETS" vm -- bash -c '
+    real="$1"
+    shift
+
+    scope_args=()
+    has_scope=false
+    for arg in "$@"; do
+      if [[ "$arg" == "--scope" || "$arg" == --scope=* ]]; then
+        has_scope=true
+        break
+      fi
+    done
+
+    if ! $has_scope; then
+      scope_args=(--scope tilt-legal)
+    fi
+
+    if [[ -n "${VERCEL_TOKEN:-}" ]]; then
+      exec "$real" "$@" --token="$VERCEL_TOKEN" "${scope_args[@]}"
+    fi
+
+    exec "$real" "$@" "${scope_args[@]}"
+  ' bash "$REAL_VERCEL" "$@"
 fi
 
-if [[ -n "$VERCEL_TOKEN" ]]; then
-  exec "$HOME/.bun/bin/vercel" "$@" --token="$VERCEL_TOKEN" "${SCOPE_ARGS[@]}"
-else
-  exec "$HOME/.bun/bin/vercel" "$@" "${SCOPE_ARGS[@]}"
-fi
+exec "$REAL_VERCEL" "$@"

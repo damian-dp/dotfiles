@@ -2,8 +2,12 @@
 result
 result-*
 
-# Secrets (never commit)
-secrets/
+# Secrets (never commit plaintext secrets)
+secrets/*
+!secrets/README.md
+!secrets/refs/
+secrets/refs/*
+!secrets/refs/*.env
 *.secret
 *.key
 .secrets

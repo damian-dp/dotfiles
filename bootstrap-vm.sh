@@ -210,9 +210,9 @@ echo ""
 echo "[9/12] Installing external AI CLIs..."
 "$HOME/code/dotfiles/scripts/setup-ai-clis.sh"
 
-# Verify Vercel CLI access (token loaded from 1Password on demand via zshrc wrapper)
+# Verify Vercel CLI access through the shared secret reference helper
 if [ -x "$HOME/.bun/bin/vercel" ]; then
-  VERCEL_TOKEN_VAL=$(op read "op://VM/VERCEL_TOKEN/token" 2>/dev/null)
+  VERCEL_TOKEN_VAL=$("$HOME/code/dotfiles/scripts/with-secrets.sh" vm --no-masking -- printenv VERCEL_TOKEN 2>/dev/null || true)
   if [[ -n "$VERCEL_TOKEN_VAL" ]]; then
     # Ensure node is in PATH (just installed by home-manager)
     export PATH="$HOME/.nix-profile/bin:$PATH"

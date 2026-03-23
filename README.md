@@ -70,6 +70,9 @@ sudo nix run github:nix-darwin/nix-darwin/master#darwin-rebuild -- switch --flak
 
 # Install external AI CLIs explicitly
 ./scripts/setup-ai-clis.sh
+
+# Verify the machine state
+./scripts/verify-machine.sh mac
 ```
 
 If you want App Store apps (`Microsoft Outlook`, `Microsoft Teams`) to install on the first pass, sign into the App Store before running `darwin-rebuild`. Otherwise, sign in and run `darwin-rebuild switch` again.
@@ -94,6 +97,12 @@ dotfiles/
 ├── flake.nix                 # Main entry - defines configurations
 ├── flake.lock                # Pinned dependencies
 ├── bootstrap-vm.sh           # VM bootstrap (1Password + Tailscale + OpenCode + firewall)
+├── secrets/
+│   ├── README.md             # Secret reference registry docs
+│   └── refs/
+│       ├── common.env        # Shared 1Password secret references
+│       ├── mac.env           # macOS-only secret references
+│       └── vm.env            # Headless VM secret references
 │
 ├── home/
 │   ├── core.nix              # Shared: CLI tools, dotfiles, writable config deployment
@@ -128,7 +137,10 @@ dotfiles/
 │       └── studio.nix        # Mac Studio host identity
 │
 ├── scripts/
-│   └── setup-ai-clis.sh      # Explicit installer/configurer for external AI CLIs
+│   ├── setup-ai-clis.sh      # Explicit installer/configurer for external AI CLIs
+│   ├── with-secrets.sh       # Run commands with secret refs resolved by 1Password
+│   ├── render-secret-configs.sh # Render runtime configs from secret-backed templates
+│   └── verify-machine.sh     # Cross-platform post-setup verification checks
 │
 ├── nixos/
 │   └── configuration.nix     # NixOS system config (if running NixOS)
@@ -174,7 +186,7 @@ dotfiles/
 
 ## AI Coding Tools
 
-Three AI coding CLIs are installed outside Nix (for auto-updates) with configs managed by dotfiles. Use `./scripts/setup-ai-clis.sh` after a rebuild or on a fresh machine.
+Three AI coding CLIs are installed outside Nix (for auto-updates) with configs managed by dotfiles. Use `./scripts/setup-ai-clis.sh` after a rebuild or on a fresh machine. It also renders the secret-backed Codex/OpenCode runtime configs.
 
 ### Permissions
 
@@ -205,7 +217,7 @@ Each tool has its own MCP config format. The shared servers are:
 
 Codex also has: figma, context7, playwright.
 
-The Vercel bypass secret is fetched from 1Password during rebuilds and baked into live configs automatically. Sync-back intentionally excludes live Codex/OpenCode config files to avoid committing expanded secrets.
+The Vercel bypass secret is no longer fetched during rebuilds. Secret references now live in `secrets/refs/*.env`, and live Codex/OpenCode configs are rendered explicitly by `./scripts/render-secret-configs.sh`. Sync-back intentionally excludes those live files to avoid committing rendered secrets.
 
 ## Shell Functions
 
@@ -243,7 +255,7 @@ dotfiles-sync
 cd ~/code/dotfiles && git diff
 ```
 
-Currently this syncs `Claude` settings only. Live `Codex` and `OpenCode` configs are excluded because they may contain runtime-expanded secrets.
+Currently this syncs `Claude` settings only. Live `Codex` and `OpenCode` configs are excluded because they are rendered from secret-backed templates.
 
 ## Config Management
 
@@ -251,7 +263,8 @@ Currently this syncs `Claude` settings only. Live `Codex` and `OpenCode` configs
 |--------|-------------|----------|
 | **Nix module** | Declarative config in `.nix` files | Apps with home-manager modules (git, zed) |
 | **Symlink** | Read-only link to nix store | Configs that don't change (CLAUDE.md, AGENTS.md, keybindings) |
-| **Overwrite on rebuild** | Copied from dotfiles every rebuild | AI tool configs (Claude, Codex, OpenCode) — dotfiles is source of truth |
+| **Overwrite on rebuild** | Copied from dotfiles every rebuild | Non-secret writable configs (Claude settings, Cursor settings) |
+| **Explicit render** | Rendered from templates with 1Password secret refs | Secret-backed runtime configs (Codex, OpenCode) |
 
 ## 1Password Secrets (VM)
 
@@ -263,11 +276,20 @@ The VM uses a 1Password **Service Account** scoped to the VM vault only (no acce
 | Tailscale auth key | `TS_AUTH_KEY` | Used once during bootstrap (not persisted) |
 | SSH signing key | `GH_SSH_KEY` | Extracted to `~/.ssh/id_ed25519_signing` (needed on disk for git/ssh) |
 | GitHub OAuth | (device code flow) | `gh auth login --web` during bootstrap for `gh` API usage, stored in `~/.config/gh/hosts.yml` |
-| GitHub classic PAT | `GH_CLASSIC_PAT` | Loaded by the Linux `pnpm` wrapper for private npm packages |
-| Vercel token | `VERCEL_TOKEN` | Loaded from 1Password on first `vercel` command each session |
-| Vercel bypass secret | `VERCEL_BYPASS_SECRET` | Baked into Claude/Codex/OpenCode configs at rebuild time |
+| GitHub classic PAT | `GH_CLASSIC_PAT` | Exposed to Linux `pnpm` through `scripts/with-secrets.sh` |
+| Vercel token | `VERCEL_TOKEN` | Exposed to Linux `vercel` through `scripts/with-secrets.sh` |
+| Vercel bypass secret | `VERCEL_BYPASS_SECRET` | Rendered into Codex/OpenCode configs by `scripts/render-secret-configs.sh` |
 
-The service account token is the only secret saved to disk by the bootstrap. It's auto-loaded in every shell session, enabling `op read "op://VM/..."` to fetch other secrets on demand.
+The service account token is the only secret saved to disk by the bootstrap. It's auto-loaded in every shell session, enabling `scripts/with-secrets.sh` to resolve the central secret reference files on demand.
+
+## Secret Workflow
+
+The source of truth for secret wiring is in `secrets/refs/`. Add new `op://...` references there, then consume them through:
+
+- `./scripts/with-secrets.sh` for one-off commands or wrappers
+- `./scripts/render-secret-configs.sh` for runtime config files
+
+This keeps secrets out of Nix activation and out of git-tracked runtime files.
 
 ## Git Commit Signing
 
@@ -328,6 +350,17 @@ For commits to show as "Verified" on GitHub:
 cd ~/code/dotfiles
 nix flake update
 darwin-rebuild switch --flake .#Damian-MBP  # or home-manager for Linux
+```
+
+## Verification
+
+Run the machine verification script after a rebuild or bootstrap:
+
+```bash
+./scripts/verify-machine.sh
+./scripts/verify-machine.sh mac
+./scripts/verify-machine.sh vm
+./scripts/verify-machine.sh linux-client
 ```
 
 ## Adding Packages
