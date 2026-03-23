@@ -39,7 +39,6 @@
             ({ config, ... }: {
               nix-homebrew = {
                 enable = true;
-                enableRosetta = true;
                 autoMigrate = true;
                 taps = {
                   "homebrew/homebrew-core" = homebrew-core;
