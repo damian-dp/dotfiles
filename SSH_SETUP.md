@@ -58,6 +58,8 @@ ssh-add -l
 
 Linux VMs without a desktop environment can't use the 1Password SSH agent. Instead, we extract keys from 1Password and store them locally.
 
+For your standard Ubuntu dev VM, prefer the automated flow in [`bootstrap-vm.sh`](/Users/damian/code/dotfiles/bootstrap-vm.sh). It installs `1password-cli`, configures the service account token, extracts the SSH key, applies Home Manager, and hardens the firewall. The manual steps below are only for understanding or recovery.
+
 ### Prerequisites
 
 1. Install 1Password CLI:

@@ -4,13 +4,14 @@ Reproducible development environment using Nix flakes, home-manager, and nix-dar
 
 ## Overview
 
-Three configurations:
+Four configurations:
 
 | Config | Platform | Use Case | Command |
 |--------|----------|----------|---------|
 | `damian@linux` | Linux x86_64 | VMs, servers (headless + OpenCode) | `home-manager switch --flake .#damian@linux` |
 | `damian@linux-client` | Linux x86_64 | Linux desktop (no OpenCode server) | `home-manager switch --flake .#damian@linux-client` |
-| `Damian-MBP` | macOS ARM | Workstation (full setup) | `darwin-rebuild switch --flake .#Damian-MBP` |
+| `Damian-MBP` | macOS ARM | MacBook Pro (shared macOS profile) | `darwin-rebuild switch --flake .#Damian-MBP` |
+| `Damian-Studio` | macOS ARM | Mac Studio (shared macOS profile) | `darwin-rebuild switch --flake .#Damian-Studio` |
 
 ## Quick Start
 
@@ -25,6 +26,8 @@ The bootstrap script sets up a fresh VM as a remote dev environment with OpenCod
    - `TS_AUTH_KEY` — Tailscale auth key (field: `credential`)
    - `GH_SSH_KEY` — your ed25519 SSH key (SSH key item)
    - `VERCEL_TOKEN` — Vercel auth token (field: `token`, optional — only needed for Vercel deploys)
+   - `GH_CLASSIC_PAT` — GitHub classic PAT (field: `token`, optional — only needed for private npm packages)
+   - `VERCEL_BYPASS_SECRET` — Vercel bypass secret (field: `credential`, optional — only needed for canary MCP auth)
 3. Create a **Service Account** (1Password Settings > Developer > Service Accounts)
    - Grant `read_items` access to the VM vault only
    - Save the token (starts with `ops_`)
@@ -56,10 +59,20 @@ After completion, access OpenCode from any Tailscale device:
 ### New macOS Workstation
 
 ```bash
+# Install Nix first (for example with the official installer or Lix),
+# then clone the repo and apply the host config.
 git clone https://github.com/damian-dp/dotfiles.git ~/code/dotfiles
 cd ~/code/dotfiles
-nix run nix-darwin -- switch --flake .#Damian-MBP
+sudo nix run github:nix-darwin/nix-darwin/master#darwin-rebuild -- switch --flake .#Damian-MBP
+
+# Or for the always-on desktop:
+sudo nix run github:nix-darwin/nix-darwin/master#darwin-rebuild -- switch --flake .#Damian-Studio
+
+# Install external AI CLIs explicitly
+./scripts/setup-ai-clis.sh
 ```
+
+If you want App Store apps (`Microsoft Outlook`, `Microsoft Teams`) to install on the first pass, sign into the App Store before running `darwin-rebuild`. Otherwise, sign in and run `darwin-rebuild switch` again.
 
 ### Updating
 
@@ -80,12 +93,12 @@ darwin-rebuild switch --flake .#Damian-MBP
 dotfiles/
 ├── flake.nix                 # Main entry - defines configurations
 ├── flake.lock                # Pinned dependencies
-├── bootstrap-vm.sh           # VM bootstrap (1Password + Tailscale + OpenCode)
+├── bootstrap-vm.sh           # VM bootstrap (1Password + Tailscale + OpenCode + firewall)
 │
 ├── home/
-│   ├── core.nix              # Shared: CLI tools, dotfiles, activation scripts
+│   ├── core.nix              # Shared: CLI tools, dotfiles, writable config deployment
 │   ├── linux.nix             # Linux-specific config
-│   ├── workstation.nix       # macOS: fonts, app configs (Ghostty/Zed/Cursor)
+│   ├── workstation.nix       # Shared macOS user config (fonts, app configs, editor settings)
 │   ├── modules/
 │   │   └── opencode.nix      # OpenCode systemd service module
 │   └── dotfiles/
@@ -109,9 +122,13 @@ dotfiles/
 │       └── warp/             # Warp launch configurations
 │
 ├── darwin/
-│   └── system.nix            # macOS system preferences
+│   ├── common.nix            # Shared macOS system config + Homebrew/App Store apps
+│   └── hosts/
+│       ├── mbp.nix           # MacBook Pro host identity
+│       └── studio.nix        # Mac Studio host identity
 │
-├── scripts/                  # Utility scripts (Tailscale, Raycast, etc.)
+├── scripts/
+│   └── setup-ai-clis.sh      # Explicit installer/configurer for external AI CLIs
 │
 ├── nixos/
 │   └── configuration.nix     # NixOS system config (if running NixOS)
@@ -131,17 +148,18 @@ dotfiles/
 - **Shell**: zsh + oh-my-zsh + Powerlevel10k
 - **Tools**: git, gh, curl, wget, ripgrep, fd, fzf, eza, zoxide, delta, lazygit, jq, tree, htop, btop, tmux, direnv, caddy
 - **Python**: uv (fast Python package manager)
-- **JS**: Node.js, pnpm, Bun (runtime + package manager), Turborepo, Vercel CLI (via Bun)
+- **JS**: Node.js, pnpm
 - **LSP**: typescript-language-server, biome (used by AI coding tools)
 - **Network**: tailscale
-- **AI**: Claude Code, OpenCode, Codex (installed outside Nix for auto-updates)
+- **AI**: Claude Code, OpenCode, Codex, Bun global tools (installed via `scripts/setup-ai-clis.sh`)
 - **Git**: SSH commit signing via 1Password
 
-### macOS Workstation (workstation.nix + darwin/system.nix)
+### macOS Workstation (workstation.nix + darwin/common.nix + darwin/hosts/*)
 
 - **Fonts**: Nerd Fonts (Meslo, JetBrains Mono)
-- **Tools**: bat (better cat)
+- **Tools**: bat, 1Password CLI, PostgreSQL 17 client tools
 - **App configs**: Ghostty, Zed, Cursor, Warp (launch configs)
+- **Apps**: managed declaratively via Homebrew casks + App Store apps
 - **System prefs**: auto light/dark mode, Finder show extensions/path bar, text replacements
 - **Services**: Tailscale, Touch ID for sudo
 
@@ -152,11 +170,11 @@ dotfiles/
 - **Caddy**: copied with `cap_net_bind_service` for port 80 binding
 - **CLI wrappers**: `pnpm` and `vercel` wrappers that inject 1Password tokens
 - **Git hooks**: global hooks prevent commits and pushes to `main`/`master` branches
-- **Access**: via Tailscale (no public ports)
+- **Access**: OpenCode restricted to `tailscale0` by host firewall rules
 
 ## AI Coding Tools
 
-Three AI coding CLIs are installed outside Nix (for auto-updates) with configs managed by dotfiles.
+Three AI coding CLIs are installed outside Nix (for auto-updates) with configs managed by dotfiles. Use `./scripts/setup-ai-clis.sh` after a rebuild or on a fresh machine.
 
 ### Permissions
 
@@ -187,7 +205,7 @@ Each tool has its own MCP config format. The shared servers are:
 
 Codex also has: figma, context7, playwright.
 
-The Vercel bypass secret is fetched from 1Password during each rebuild and baked into configs automatically.
+The Vercel bypass secret is fetched from 1Password during rebuilds and baked into live configs automatically. Sync-back intentionally excludes live Codex/OpenCode config files to avoid committing expanded secrets.
 
 ## Shell Functions
 
@@ -218,12 +236,14 @@ Connection mode is logged to `~/.local/state/opencode.log`.
 
 ### `dotfiles-sync` — Sync Live Configs Back to Repo
 
-Copies modified writable configs (Claude, Codex, OpenCode) from their live locations back to the dotfiles repo for review and commit.
+Copies modified writable configs that are safe to sync back into the dotfiles repo for review and commit.
 
 ```bash
 dotfiles-sync
 cd ~/code/dotfiles && git diff
 ```
+
+Currently this syncs `Claude` settings only. Live `Codex` and `OpenCode` configs are excluded because they may contain runtime-expanded secrets.
 
 ## Config Management
 
@@ -242,7 +262,8 @@ The VM uses a 1Password **Service Account** scoped to the VM vault only (no acce
 | Service account token | (provided manually once) | Saved to `~/.config/op/service-account-token`, auto-loaded in every shell |
 | Tailscale auth key | `TS_AUTH_KEY` | Used once during bootstrap (not persisted) |
 | SSH signing key | `GH_SSH_KEY` | Extracted to `~/.ssh/id_ed25519_signing` (needed on disk for git/ssh) |
-| GitHub OAuth | (device code flow) | `gh auth login --web` during bootstrap, stored in `~/.config/gh/hosts.yml` |
+| GitHub OAuth | (device code flow) | `gh auth login --web` during bootstrap for `gh` API usage, stored in `~/.config/gh/hosts.yml` |
+| GitHub classic PAT | `GH_CLASSIC_PAT` | Loaded by the Linux `pnpm` wrapper for private npm packages |
 | Vercel token | `VERCEL_TOKEN` | Loaded from 1Password on first `vercel` command each session |
 | Vercel bypass secret | `VERCEL_BYPASS_SECRET` | Baked into Claude/Codex/OpenCode configs at rebuild time |
 
@@ -315,7 +336,7 @@ Edit the appropriate file:
 
 - **All platforms**: `home/core.nix` → `home.packages`
 - **macOS only**: `home/workstation.nix` → `home.packages`
-- **macOS system**: `darwin/system.nix` → `environment.systemPackages`
+- **macOS system + apps**: `darwin/common.nix`
 
 ## License
 

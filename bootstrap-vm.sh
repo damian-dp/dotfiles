@@ -16,6 +16,9 @@ set -e
 #   2. Add these items to the VM vault:
 #      - "TS_AUTH_KEY"   → field "credential"  (Tailscale auth key)
 #      - "GH_SSH_KEY"    → SSH key item        (your ed25519 key for GitHub)
+#      - "VERCEL_TOKEN"  → field "token"       (optional, for Vercel CLI auth)
+#      - "GH_CLASSIC_PAT" → field "token"      (optional, for private npm packages)
+#      - "VERCEL_BYPASS_SECRET" → field "credential" (optional, for cubitt-canary MCP)
 #   3. Create a Service Account (1Password Settings > Developer > Service Accounts)
 #      - Grant read_items access to the VM vault only
 #      - Save the token (starts with ops_)
@@ -62,11 +65,11 @@ if [[ ! -f "$OP_TOKEN_FILE" ]]; then
 fi
 
 # -----------------------------------------------------------------------------
-# [1/10] Install prerequisites
+# [1/12] Install prerequisites
 # -----------------------------------------------------------------------------
-echo "[1/10] Installing prerequisites..."
+echo "[1/12] Installing prerequisites..."
 NEEDS_INSTALL=()
-for cmd in git curl jq tar; do
+for cmd in git curl jq tar gpg ufw; do
   if ! command -v "$cmd" &>/dev/null; then
     NEEDS_INSTALL+=("$cmd")
   fi
@@ -81,10 +84,10 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# [2/10] Install 1Password CLI
+# [2/12] Install 1Password CLI
 # -----------------------------------------------------------------------------
 echo ""
-echo "[2/10] Installing 1Password CLI..."
+echo "[2/12] Installing 1Password CLI..."
 if ! command -v op &>/dev/null; then
   curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
     sudo gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg
@@ -104,10 +107,10 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# [3/10] Verify 1Password authentication
+# [3/12] Verify 1Password authentication
 # -----------------------------------------------------------------------------
 echo ""
-echo "[3/10] Verifying 1Password service account..."
+echo "[3/12] Verifying 1Password service account..."
 if ! op vault list --format=json 2>/dev/null | jq -e '.[] | select(.name == "VM")' >/dev/null 2>&1; then
   echo "ERROR: Cannot access 'VM' vault. Check your service account token and vault permissions."
   exit 1
@@ -115,10 +118,10 @@ fi
 echo "Authenticated. VM vault accessible."
 
 # -----------------------------------------------------------------------------
-# [4/10] Install Tailscale + authenticate
+# [4/12] Install Tailscale + authenticate
 # -----------------------------------------------------------------------------
 echo ""
-echo "[4/10] Setting up Tailscale..."
+echo "[4/12] Setting up Tailscale..."
 if ! command -v tailscale &>/dev/null; then
   curl -fsSL https://tailscale.com/install.sh | sh
   echo "Tailscale installed."
@@ -135,10 +138,10 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# [5/10] Install Nix
+# [5/12] Install Nix
 # -----------------------------------------------------------------------------
 echo ""
-echo "[5/10] Installing Nix..."
+echo "[5/12] Installing Nix..."
 if ! command -v nix &>/dev/null; then
   sh <(curl -L https://nixos.org/nix/install) --daemon
   echo ""
@@ -158,10 +161,10 @@ if ! grep -q "experimental-features" /etc/nix/nix.conf 2>/dev/null; then
 fi
 
 # -----------------------------------------------------------------------------
-# [6/10] Set up SSH key (for GitHub SSH + git commit signing)
+# [6/12] Set up SSH key (for GitHub SSH + git commit signing)
 # -----------------------------------------------------------------------------
 echo ""
-echo "[6/10] Setting up SSH key..."
+echo "[6/12] Setting up SSH key..."
 SSH_KEY="$HOME/.ssh/id_ed25519_signing"
 if [[ ! -f "$SSH_KEY" ]]; then
   mkdir -p "$HOME/.ssh"
@@ -180,10 +183,10 @@ eval "$(ssh-agent -s)" >/dev/null 2>&1
 ssh-add "$SSH_KEY" 2>/dev/null
 
 # -----------------------------------------------------------------------------
-# [7/10] Clone dotfiles via SSH
+# [7/12] Clone dotfiles via SSH
 # -----------------------------------------------------------------------------
 echo ""
-echo "[7/10] Cloning dotfiles..."
+echo "[7/12] Cloning dotfiles..."
 if [[ ! -d "$HOME/code/dotfiles" ]]; then
   git clone git@github.com:damian-dp/dotfiles.git "$HOME/code/dotfiles"
   echo "Dotfiles cloned."
@@ -193,12 +196,19 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# [8/10] Apply home-manager config
+# [8/12] Apply home-manager config
 # -----------------------------------------------------------------------------
 echo ""
-echo "[8/10] Applying home-manager config..."
+echo "[8/12] Applying home-manager config..."
 
 nix run home-manager -- switch -b backup --flake "$HOME/code/dotfiles#damian@linux"
+
+# -----------------------------------------------------------------------------
+# [9/12] Install external AI CLIs + configure Claude MCP
+# -----------------------------------------------------------------------------
+echo ""
+echo "[9/12] Installing external AI CLIs..."
+"$HOME/code/dotfiles/scripts/setup-ai-clis.sh"
 
 # Verify Vercel CLI access (token loaded from 1Password on demand via zshrc wrapper)
 if [ -x "$HOME/.bun/bin/vercel" ]; then
@@ -216,10 +226,22 @@ if [ -x "$HOME/.bun/bin/vercel" ]; then
 fi
 
 # -----------------------------------------------------------------------------
-# [9/10] Clone project repos
+# [10/12] Configure firewall
 # -----------------------------------------------------------------------------
 echo ""
-echo "[9/10] Cloning project repos..."
+echo "[10/12] Configuring firewall..."
+sudo ufw default deny incoming
+sudo ufw allow OpenSSH
+sudo ufw allow in on tailscale0 to any port 4096 proto tcp
+sudo ufw deny 4096/tcp
+sudo ufw --force enable
+echo "Firewall configured: SSH allowed, OpenCode restricted to Tailscale."
+
+# -----------------------------------------------------------------------------
+# [11/12] Clone project repos
+# -----------------------------------------------------------------------------
+echo ""
+echo "[11/12] Cloning project repos..."
 mkdir -p "$HOME/code/tilt"
 
 for repo in TILT-Legal/Mobius TILT-Legal/Cubitt; do
@@ -240,13 +262,13 @@ loginctl enable-linger "$USER"
 systemctl --user start opencode 2>/dev/null || true
 
 # -----------------------------------------------------------------------------
-# [10/10] Authenticate GitHub CLI (interactive — device code flow)
+# [12/12] Authenticate GitHub CLI (interactive — device code flow)
 # -----------------------------------------------------------------------------
 # This is last because it requires manual interaction (entering a code at
 # github.com/login/device). Only needed for gh API operations (PRs, issues,
 # etc.) — all git clone/push/pull uses SSH above.
 echo ""
-echo "[10/10] Authenticating GitHub CLI..."
+echo "[12/12] Authenticating GitHub CLI..."
 
 # Use gh via nix run (avoids nix profile conflict with home-manager)
 GH_CMD="nix run nixpkgs#gh --"

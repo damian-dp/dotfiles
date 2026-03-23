@@ -1,14 +1,45 @@
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 
 {
   # =============================================================================
-  # Nix Settings (managed by Determinate, not nix-darwin)
+  # Nix Settings (managed externally, not by nix-darwin)
   # =============================================================================
   nix.enable = false;
   documentation.enable = false;
   
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
+
+  # =============================================================================
+  # Homebrew / App Store
+  # =============================================================================
+  homebrew = {
+    enable = true;
+    brews = [ "mas" ];
+    casks = [
+      "1password"
+      "ghostty"
+      "tailscale-app"
+      "zed"
+      "cursor"
+      "orbstack"
+      "gitkraken"
+      "arc"
+      "google-chrome"
+      "raycast"
+      "lm-studio"
+    ];
+    masApps = {
+      "Microsoft Outlook" = 985367838;
+      "Microsoft Teams" = 1113153706;
+    };
+    caskArgs.appdir = "/Applications";
+    onActivation = {
+      autoUpdate = false;
+      upgrade = false;
+      cleanup = "none";
+    };
+  };
 
   # =============================================================================
   # System Packages

@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nix-homebrew.url = "github:zhaofengli/nix-homebrew";
     
     home-manager = {
       url = "github:nix-community/home-manager";
@@ -15,9 +16,40 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, nix-darwin, ... }:
+  outputs = inputs@{ self, nixpkgs, nix-homebrew, home-manager, nix-darwin, ... }:
     let
       lib = nixpkgs.lib;
+      mkDarwinConfiguration = hostModule:
+        nix-darwin.lib.darwinSystem {
+          system = "aarch64-darwin";
+          specialArgs = { inherit inputs; };
+          modules = [
+            nix-homebrew.darwinModules.nix-homebrew
+            ./darwin/common.nix
+            hostModule
+            home-manager.darwinModules.home-manager
+            {
+              nix-homebrew = {
+                enable = true;
+                enableRosetta = true;
+                autoMigrate = true;
+                user = "damian";
+              };
+
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "backup";
+              home-manager.users.damian = { lib, ... }: {
+                imports = [
+                  ./home/core.nix
+                  ./home/workstation.nix
+                ];
+                home.username = "damian";
+                home.homeDirectory = lib.mkForce "/Users/damian";
+              };
+            }
+          ];
+        };
     in
     {
       # =======================================================================
@@ -63,33 +95,8 @@
       # =======================================================================
       # Usage: darwin-rebuild switch --flake .#Damian-MBP
       darwinConfigurations = {
-        "Damian-MBP" = nix-darwin.lib.darwinSystem {
-          system = "aarch64-darwin";
-          modules = [
-            ./darwin/system.nix
-            home-manager.darwinModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.backupFileExtension = "backup";
-              home-manager.users.damian = { pkgs, lib, ... }: {
-                imports = [ 
-                  ./home/core.nix 
-                  ./home/workstation.nix 
-                ];
-                home.username = "damian";
-                home.homeDirectory = lib.mkForce "/Users/damian";
-                
-                # 1Password SSH agent (macOS)
-                programs.zsh.initContent = lib.mkAfter ''
-                  if [[ -S "$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock" ]]; then
-                    export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
-                  fi
-                '';
-              };
-            }
-          ];
-        };
+        "Damian-MBP" = mkDarwinConfiguration ./darwin/hosts/mbp.nix;
+        "Damian-Studio" = mkDarwinConfiguration ./darwin/hosts/studio.nix;
       };
 
       # =======================================================================
