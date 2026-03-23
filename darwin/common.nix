@@ -55,7 +55,7 @@
       "Caffeinated" = 1362171212;
       "1Password for Safari" = 1569813296;
       "BetterJSON" = 1511935951;
-      "WhatFont" = 1437138382;
+      # WhatFont (1437138382) — install manually from App Store; mas requires Rosetta
     };
     caskArgs.appdir = "/Applications";
     onActivation = {
