@@ -66,7 +66,7 @@ env_files=("$REPO_ROOT/secrets/refs/common.env")
 case "$resolved_context" in
   mac)
     env_files+=("$REPO_ROOT/secrets/refs/mac.env")
-    op_cmd=(op --account my)
+    op_cmd=(op)
     ;;
   vm)
     env_files+=("$REPO_ROOT/secrets/refs/vm.env")
