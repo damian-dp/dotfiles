@@ -62,34 +62,83 @@ if [[ "$resolved_context" == "vm" && -z "${OP_SERVICE_ACCOUNT_TOKEN:-}" && -f "$
   OP_SERVICE_ACCOUNT_TOKEN="$(cat "$HOME/.config/op/service-account-token")"
 fi
 
-env_files=("$REPO_ROOT/secrets/refs/common.env")
+masking_flag=()
+if $no_masking; then
+  masking_flag=(--no-masking)
+fi
+
+# Resolve a single env file with op, printing KEY=VALUE lines to stdout.
+resolve_env_file() {
+  local env_file="$1"
+  local account="${2:-}"
+  local acct_flag=()
+  if [[ -n "$account" ]]; then
+    acct_flag=(--account "$account")
+  fi
+  op "${acct_flag[@]}" run "${masking_flag[@]}" --env-file="$env_file" -- env
+}
+
 case "$resolved_context" in
   mac)
-    env_files+=("$REPO_ROOT/secrets/refs/mac.env")
-    op_cmd=(op)
+    # On macOS, secrets span two 1Password accounts:
+    #   common.env → personal account (my.1password.com)
+    #   mac.env    → work account (tiltlegal.1password.com)
+    # Resolve each with the correct account, then merge and exec.
+    common_env="$REPO_ROOT/secrets/refs/common.env"
+    mac_env="$REPO_ROOT/secrets/refs/mac.env"
+
+    resolved_vars=""
+    if [[ -f "$common_env" ]]; then
+      resolved_vars+="$(resolve_env_file "$common_env" my)"$'\n'
+    fi
+    if [[ -f "$mac_env" ]]; then
+      resolved_vars+="$(resolve_env_file "$mac_env" tiltlegal)"$'\n'
+    fi
+
+    # Extract only the keys defined in our env files and export them.
+    wanted_keys=()
+    for env_file in "$common_env" "$mac_env"; do
+      if [[ -f "$env_file" ]]; then
+        while IFS= read -r line; do
+          [[ "$line" =~ ^[[:space:]]*# ]] && continue
+          [[ -z "$line" ]] && continue
+          wanted_keys+=("${line%%=*}")
+        done < "$env_file"
+      fi
+    done
+
+    for key in "${wanted_keys[@]}"; do
+      value="$(grep "^${key}=" <<< "$resolved_vars" | tail -1 | cut -d= -f2-)"
+      if [[ -n "$value" ]]; then
+        export "$key=$value"
+      fi
+    done
+
+    exec "$@"
     ;;
+
   vm)
-    env_files+=("$REPO_ROOT/secrets/refs/vm.env")
-    op_cmd=(op)
+    env_files=("$REPO_ROOT/secrets/refs/common.env" "$REPO_ROOT/secrets/refs/vm.env")
+    op_run_args=(run "${masking_flag[@]}")
+    for env_file in "${env_files[@]}"; do
+      if [[ -f "$env_file" ]]; then
+        op_run_args+=("--env-file=$env_file")
+      fi
+    done
+    exec op "${op_run_args[@]}" -- "$@"
     ;;
+
   linux-client)
-    op_cmd=(op)
+    op_run_args=(run "${masking_flag[@]}")
+    env_file="$REPO_ROOT/secrets/refs/common.env"
+    if [[ -f "$env_file" ]]; then
+      op_run_args+=("--env-file=$env_file")
+    fi
+    exec op "${op_run_args[@]}" -- "$@"
     ;;
+
   *)
     echo "Unknown secret context: $resolved_context" >&2
     exit 2
     ;;
 esac
-
-op_run_args=(run)
-if $no_masking; then
-  op_run_args+=(--no-masking)
-fi
-
-for env_file in "${env_files[@]}"; do
-  if [[ -f "$env_file" ]]; then
-    op_run_args+=("--env-file=$env_file")
-  fi
-done
-
-exec "${op_cmd[@]}" "${op_run_args[@]}" -- "$@"
