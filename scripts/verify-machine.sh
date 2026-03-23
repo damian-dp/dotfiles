@@ -230,7 +230,38 @@ check_mac() {
   check_runtime_configs
   check_file "$HOME/Library/Application Support/Cursor/User/settings.json" "Cursor settings"
 
-  for cask in 1password ghostty tailscale-app zed cursor orbstack gitkraken arc google-chrome raycast lm-studio; do
+  for cask in \
+    1password \
+    ghostty \
+    tailscale-app \
+    zed \
+    cursor \
+    orbstack \
+    google-chrome \
+    raycast \
+    microsoft-outlook \
+    microsoft-teams \
+    microsoft-excel \
+    microsoft-word \
+    onedrive \
+    affinity-designer \
+    affinity-photo \
+    affinity-publisher \
+    bambu-studio \
+    betterdisplay \
+    chatgpt \
+    claude \
+    codex-app \
+    codexbar \
+    discord \
+    figma \
+    linear-linear \
+    notion \
+    nucleo \
+    setapp \
+    spotify \
+    warp
+  do
     check_homebrew_cask "$cask"
   done
 
@@ -241,17 +272,37 @@ check_mac() {
     "Zed.app" \
     "Cursor.app" \
     "OrbStack.app" \
-    "GitKraken.app" \
-    "Arc.app" \
     "Google Chrome.app" \
     "Raycast.app" \
-    "LM Studio.app"
+    "Microsoft Outlook.app" \
+    "Microsoft Teams.app" \
+    "Microsoft Excel.app" \
+    "Microsoft Word.app" \
+    "OneDrive.app" \
+    "Affinity Designer 2.app" \
+    "Affinity Photo 2.app" \
+    "Affinity Publisher 2.app" \
+    "BambuStudio.app" \
+    "BetterDisplay.app" \
+    "ChatGPT.app" \
+    "Claude.app" \
+    "Codex.app" \
+    "CodexBar.app" \
+    "Discord.app" \
+    "Figma.app" \
+    "Linear.app" \
+    "Notion.app" \
+    "Nucleo.app" \
+    "Setapp.app" \
+    "Spotify.app" \
+    "Warp.app"
   do
     check_app "$app"
   done
 
-  check_mas_app 985367838 "Microsoft Outlook"
-  check_mas_app 1113153706 "Microsoft Teams"
+  check_mas_app 1569813296 "1Password for Safari"
+  check_mas_app 1511935951 "BetterJSON"
+  check_mas_app 1437138382 "WhatFont"
 }
 
 check_linux_common() {

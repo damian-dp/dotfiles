@@ -4,6 +4,14 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
+    homebrew-core = {
+      url = "github:homebrew/homebrew-core";
+      flake = false;
+    };
+    homebrew-cask = {
+      url = "github:homebrew/homebrew-cask";
+      flake = false;
+    };
     
     home-manager = {
       url = "github:nix-community/home-manager";
@@ -16,7 +24,7 @@
     };
   };
 
-  outputs = inputs@{ self, nixpkgs, nix-homebrew, home-manager, nix-darwin, ... }:
+  outputs = inputs@{ self, nixpkgs, nix-homebrew, homebrew-core, homebrew-cask, home-manager, nix-darwin, ... }:
     let
       lib = nixpkgs.lib;
       mkDarwinConfiguration = hostModule:
@@ -28,13 +36,20 @@
             ./darwin/common.nix
             hostModule
             home-manager.darwinModules.home-manager
-            {
+            ({ config, ... }: {
               nix-homebrew = {
                 enable = true;
                 enableRosetta = true;
                 autoMigrate = true;
+                taps = {
+                  "homebrew/homebrew-core" = homebrew-core;
+                  "homebrew/homebrew-cask" = homebrew-cask;
+                };
+                mutableTaps = false;
                 user = "damian";
               };
+
+              homebrew.taps = builtins.attrNames config.nix-homebrew.taps;
 
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
@@ -47,7 +62,7 @@
                 home.username = "damian";
                 home.homeDirectory = lib.mkForce "/Users/damian";
               };
-            }
+            })
           ];
         };
     in

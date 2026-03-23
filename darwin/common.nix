@@ -23,21 +23,41 @@
       "zed"
       "cursor"
       "orbstack"
-      "gitkraken"
-      "arc"
       "google-chrome"
       "raycast"
-      "lm-studio"
+      "microsoft-outlook"
+      "microsoft-teams"
+      "microsoft-excel"
+      "microsoft-word"
+      "onedrive"
+      "affinity-designer"
+      "affinity-photo"
+      "affinity-publisher"
+      "bambu-studio"
+      "betterdisplay"
+      "chatgpt"
+      "claude"
+      "codex-app"
+      "codexbar"
+      "discord"
+      "figma"
+      "linear-linear"
+      "notion"
+      "nucleo"
+      "setapp"
+      "spotify"
+      "warp"
     ];
     masApps = {
-      "Microsoft Outlook" = 985367838;
-      "Microsoft Teams" = 1113153706;
+      "1Password for Safari" = 1569813296;
+      "BetterJSON" = 1511935951;
+      "WhatFont" = 1437138382;
     };
     caskArgs.appdir = "/Applications";
     onActivation = {
       autoUpdate = false;
       upgrade = false;
-      cleanup = "none";
+      cleanup = "uninstall";
     };
   };
 

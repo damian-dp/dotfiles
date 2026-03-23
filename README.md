@@ -75,7 +75,7 @@ sudo nix run github:nix-darwin/nix-darwin/master#darwin-rebuild -- switch --flak
 ./scripts/verify-machine.sh mac
 ```
 
-If you want App Store apps (`Microsoft Outlook`, `Microsoft Teams`) to install on the first pass, sign into the App Store before running `darwin-rebuild`. Otherwise, sign in and run `darwin-rebuild switch` again.
+If you want App Store apps (`1Password for Safari`, `BetterJSON`, `WhatFont`) to install on the first pass, sign into the App Store before running `darwin-rebuild`. Otherwise, sign in and run `darwin-rebuild switch` again.
 
 ### Updating
 

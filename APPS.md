@@ -1,12 +1,19 @@
 # macOS App Inventory
 
-Canonical GUI app inventory for both Macs. These apps are managed declaratively via nix-darwin Homebrew/App Store config, not installed manually one by one.
+Canonical GUI app inventory for both Macs.
+
+Preferred source strategy:
+
+- Use Homebrew casks for mainstream macOS GUI apps.
+- Use App Store (`mas`) only for apps that are App Store-only or cleaner there.
+- Use Nix for CLI/runtime tools, not for most proprietary macOS GUI apps.
 
 ## Essential
 
 | App | Source | Notes |
 |-----|--------|-------|
 | [1Password](https://1password.com/downloads/mac/) | Homebrew Cask | Password manager, SSH agent |
+| 1Password for Safari | App Store (`mas`) | Safari extension companion |
 | [Ghostty](https://ghostty.org/) | Homebrew Cask | Terminal emulator |
 | [Tailscale](https://tailscale.com/download) | Homebrew Cask | VPN mesh network |
 
@@ -17,28 +24,54 @@ Canonical GUI app inventory for both Macs. These apps are managed declaratively 
 | [Zed](https://zed.dev/) | Homebrew Cask | Primary editor |
 | [Cursor](https://cursor.sh/) | Homebrew Cask | AI-assisted editor |
 | [OrbStack](https://orbstack.dev/) | Homebrew Cask | Docker & Linux VMs |
-| [GitKraken](https://www.gitkraken.com/) | Homebrew Cask | Git GUI (optional) |
+| [Warp](https://www.warp.dev/) | Homebrew Cask | Alternate terminal |
+| [Figma](https://www.figma.com/) | Homebrew Cask | Design collaboration |
+| [Linear](https://linear.app/) | Homebrew Cask | Issue tracking |
+| [Nucleo](https://nucleoapp.com/) | Homebrew Cask | Icon manager |
 
 ## Browsers
 
 | App | Source | Notes |
 |-----|--------|-------|
-| [Arc](https://arc.net/) | Homebrew Cask | Primary browser |
 | [Chrome](https://www.google.com/chrome/) | Homebrew Cask | Testing/compatibility |
+| Safari | macOS built-in | Not managed separately |
+
+## AI / Communication
+
+| App | Source | Notes |
+|-----|--------|-------|
+| [ChatGPT](https://chatgpt.com/) | Homebrew Cask | OpenAI desktop app |
+| [Claude](https://claude.com/download) | Homebrew Cask | Anthropic desktop app |
+| [Codex](https://openai.com/codex) | Homebrew Cask | OpenAI desktop app |
+| Codex (Beta) | Manual | No clean official Homebrew/App Store package found |
+| [CodexBar](https://codexbar.app/) | Homebrew Cask | Menu bar monitor |
+| [Discord](https://discord.com/) | Homebrew Cask | Communication |
 
 ## Productivity
 
 | App | Source | Notes |
 |-----|--------|-------|
 | [Raycast](https://www.raycast.com/) | Homebrew Cask | Spotlight replacement |
-| Microsoft Outlook | App Store (`mas`) | Email |
-| Microsoft Teams | App Store (`mas`) | Communication |
+| Microsoft Outlook | Homebrew Cask | Email |
+| Microsoft Teams | Homebrew Cask | Communication |
+| Microsoft Excel | Homebrew Cask | Spreadsheet |
+| Microsoft Word | Homebrew Cask | Documents |
+| OneDrive | Homebrew Cask | Cloud storage |
+| [Notion](https://www.notion.com/) | Homebrew Cask | Notes and docs |
+| [Setapp](https://setapp.com/) | Homebrew Cask | Subscription app launcher |
+| [Spotify](https://www.spotify.com/) | Homebrew Cask | Music |
+| BetterJSON | App Store (`mas`) | JSON viewer/editor |
+| WhatFont | App Store (`mas`) | Font inspection tool |
 
-## Utilities
+## Design / Utilities
 
 | App | Source | Notes |
 |-----|--------|-------|
-| [LM Studio](https://lmstudio.ai/) | Homebrew Cask | Local LLMs |
+| [Affinity Designer 2](https://affinity.serif.com/en-us/designer/) | Homebrew Cask | Vector design |
+| [Affinity Photo 2](https://affinity.serif.com/en-us/photo/) | Homebrew Cask | Photo editing |
+| [Affinity Publisher 2](https://affinity.serif.com/en-us/publisher/) | Homebrew Cask | Publishing |
+| [Bambu Studio](https://bambulab.com/en/download/studio) | Homebrew Cask | 3D printing |
+| [BetterDisplay](https://betterdisplay.pro/) | Homebrew Cask | Display management |
 
 ## CLI / Runtime Tools
 
@@ -46,6 +79,12 @@ These are not part of the GUI inventory:
 
 - Core CLI tools, `1password-cli`, and PostgreSQL 17 are managed in Nix.
 - External AI CLIs (`Claude Code`, `OpenCode`, `Codex`, Bun global tools) are installed via `./scripts/setup-ai-clis.sh`.
+
+## Inventory Notes
+
+- `/Applications` is the app bundle destination. Apps installed via Homebrew casks also appear there, so seeing an app in both `/Applications` and `brew list --cask` is normal and not a duplicate install.
+- `/Applications/Nix Apps` and `~/Applications/Home Manager Apps` are generated alias folders for GUI apps installed from the Nix store. They are not where you manually put apps.
+- This repo intentionally uses Homebrew casks for most GUI apps because that is the cleaner macOS path for proprietary apps; pure Nix is kept for CLI tools and declarative system/user config.
 
 ## Post-Install Setup
 
@@ -73,5 +112,5 @@ Config is copied from `configs/cursor/settings.json` into `~/Library/Application
 
 ### App Store apps
 
-Microsoft Outlook and Microsoft Teams are managed through `mas`.
+1Password for Safari, BetterJSON, and WhatFont are managed through `mas`.
 On a fresh Mac, sign into the App Store first so `darwin-rebuild` can install them.
