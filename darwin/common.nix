@@ -88,7 +88,6 @@
       largesize = 84;
       # Bottom-right hot corner: Quick Note
       wvous-br-corner = 14;
-      wvous-br-modifier = 0;
     };
 
     # Finder
