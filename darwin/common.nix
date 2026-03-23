@@ -83,6 +83,12 @@
       autohide = false;
       show-recents = false;
       minimize-to-application = false;
+      tilesize = 44;
+      magnification = true;
+      largesize = 84;
+      # Bottom-right hot corner: Quick Note
+      wvous-br-corner = 14;
+      wvous-br-modifier = 0;
     };
 
     # Finder
@@ -90,6 +96,13 @@
       AppleShowAllExtensions = true;
       ShowPathbar = true;
       FXEnableExtensionChangeWarning = false;
+      FXPreferredViewStyle = "clmv"; # Column view
+    };
+
+    # Trackpad
+    trackpad = {
+      Clicking = true;          # Tap to click
+      TrackpadRightClick = true; # Two-finger right click
     };
 
     # Global
@@ -97,6 +110,10 @@
       AppleInterfaceStyleSwitchesAutomatically = true;
       AppleShowScrollBars = "WhenScrolling";
       ApplePressAndHoldEnabled = false;
+      # Trackpad speed
+      "com.apple.trackpad.scaling" = 1.5;
+      # Sound
+      "com.apple.sound.beep.volume" = 0.0; # Mute system beep
     };
 
     # Mouse scaling (separate domain)
@@ -115,8 +132,24 @@
       type = "png";
     };
 
-    # Text Replacements (type @@ -> email, etc.)
+    # Spaces
+    spaces.spans-displays = false;
+
+    # Window Manager (Stage Manager off, disable click-desktop-to-show)
+    WindowManager = {
+      EnableStandardClickToShowDesktop = false;
+      EnableTiledWindowMargins = false;
+      HideDesktop = true;
+      StandardHideDesktopIcons = false;
+    };
+
+    # Don't write .DS_Store on network/USB drives
     CustomUserPreferences = {
+      "com.apple.desktopservices" = {
+        DSDontWriteNetworkStores = true;
+        DSDontWriteUSBStores = true;
+      };
+      # Text Replacements (type @@ -> email, etc.)
       NSGlobalDomain = {
         NSUserDictionaryReplacementItems = [
           { on = 1; replace = "@@"; "with" = "hello@damianpetrov.com"; }
