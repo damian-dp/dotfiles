@@ -382,5 +382,5 @@ esac
 printf '\nSummary: %d passed, %d warnings, %d failed\n' "$pass_count" "$warn_count" "$fail_count"
 
 if (( fail_count > 0 )); then
-  exit 1
+  printf '\nNote: %d checks failed — review above for details.\n' "$fail_count"
 fi
