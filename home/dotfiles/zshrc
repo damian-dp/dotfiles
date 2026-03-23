@@ -60,11 +60,6 @@ else
 fi
 [[ -d "$PNPM_HOME" ]] && export PATH="$PNPM_HOME:$PATH"
 
-# bun
-export BUN_INSTALL="$HOME/.bun"
-[[ -d "$BUN_INSTALL" ]] && export PATH="$BUN_INSTALL/bin:$PATH"
-[[ -s "$BUN_INSTALL/_bun" ]] && source "$BUN_INSTALL/_bun"
-
 # =============================================================================
 # PATH
 # =============================================================================

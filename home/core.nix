@@ -44,6 +44,7 @@
     # Node.js + package managers
     nodejs_22
     pnpm
+    bun
 
     # LSP servers (used by Claude Code plugins)
     nodePackages.typescript-language-server
@@ -62,7 +63,8 @@
     tailscale
     # Note: mosh installed via apt outside Nix when needed (needs to be in system PATH for mosh-server)
   ] ++ lib.optionals stdenv.isLinux [
-    # Docker (macOS uses OrbStack instead)
+    # Linux gets Docker Engine/Compose directly.
+    # macOS uses the Docker-compatible CLI/runtime provided by OrbStack.app.
     docker
     docker-compose
   ];
@@ -145,7 +147,6 @@
   home.sessionPath = [
     "$HOME/.local/bin"
     "$HOME/.opencode/bin"
-    "$HOME/.bun/bin"
     "$HOME/.antigravity/antigravity/bin"
   ];
 

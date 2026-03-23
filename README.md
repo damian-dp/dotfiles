@@ -71,6 +71,9 @@ sudo nix run github:nix-darwin/nix-darwin/master#darwin-rebuild -- switch --flak
 # Install external AI CLIs explicitly
 ./scripts/setup-ai-clis.sh
 
+# Install global JS CLIs through pnpm
+./scripts/setup-js-globals.sh
+
 # Verify the machine state
 ./scripts/verify-machine.sh mac
 ```
@@ -88,6 +91,10 @@ home-manager switch --flake .#damian@linux
 
 # macOS
 darwin-rebuild switch --flake .#Damian-MBP
+
+# Re-sync external tool installs after a fresh machine or if desired
+./scripts/setup-ai-clis.sh
+./scripts/setup-js-globals.sh
 ```
 
 ## Repository Structure
@@ -138,6 +145,7 @@ dotfiles/
 │
 ├── scripts/
 │   ├── setup-ai-clis.sh      # Explicit installer/configurer for external AI CLIs
+│   ├── setup-js-globals.sh   # Install global JS CLIs through pnpm only
 │   ├── with-secrets.sh       # Run commands with secret refs resolved by 1Password
 │   ├── render-secret-configs.sh # Render runtime configs from secret-backed templates
 │   └── verify-machine.sh     # Cross-platform post-setup verification checks
@@ -155,21 +163,32 @@ dotfiles/
 
 ## What's Included
 
+### Package Manager Strategy
+
+- **Nix**: shells, runtimes, CLI/system tools, services, configs
+- **Homebrew casks**: proprietary macOS GUI apps
+- **App Store (`mas`)**: App Store-only apps
+- **pnpm globals**: shared JS CLIs that should exist on every machine (`codex`, `turbo`, `vercel`, `tailwindcss`, `portless`)
+- **Bun**: installed by Nix as a runtime for repos that use Bun, but not used for machine-level global installs
+- **npm globals**: intentionally unused
+- **Bun globals**: intentionally unused
+
 ### Both Platforms (core.nix)
 
 - **Shell**: zsh + oh-my-zsh + Powerlevel10k
 - **Tools**: git, gh, curl, wget, ripgrep, fd, fzf, eza, zoxide, delta, lazygit, jq, tree, htop, btop, tmux, direnv, caddy
 - **Python**: uv (fast Python package manager)
-- **JS**: Node.js, pnpm
+- **JS**: Node.js, pnpm, Bun runtime
 - **LSP**: typescript-language-server, biome (used by AI coding tools)
 - **Network**: tailscale
-- **AI**: Claude Code, OpenCode, Codex, Bun global tools (installed via `scripts/setup-ai-clis.sh`)
+- **AI**: Claude Code + OpenCode installed explicitly; Codex and shared JS CLIs installed globally through pnpm
 - **Git**: SSH commit signing via 1Password
 
 ### macOS Workstation (workstation.nix + darwin/common.nix + darwin/hosts/*)
 
 - **Fonts**: Nerd Fonts (Meslo, JetBrains Mono)
 - **Tools**: bat, 1Password CLI, PostgreSQL 17 client tools
+- **Containers**: OrbStack provides the macOS `docker`, `docker compose`, and related Docker CLI workflow
 - **App configs**: Ghostty, Zed, Cursor, Warp (launch configs)
 - **Apps**: managed declaratively via Homebrew casks + App Store apps
 - **System prefs**: auto light/dark mode, Finder show extensions/path bar, text replacements
@@ -178,7 +197,7 @@ dotfiles/
 ### Linux VM (linux.nix + opencode.nix)
 
 - **OpenCode**: systemd service running `opencode web` on port 4096
-- **Docker**: docker + docker-compose
+- **Containers**: Docker Engine + Compose on Linux; use the same `docker` CLI workflow as macOS
 - **Caddy**: copied with `cap_net_bind_service` for port 80 binding
 - **CLI wrappers**: `pnpm` and `vercel` wrappers that inject 1Password tokens
 - **Git hooks**: global hooks prevent commits and pushes to `main`/`master` branches
@@ -186,7 +205,12 @@ dotfiles/
 
 ## AI Coding Tools
 
-Three AI coding CLIs are installed outside Nix (for auto-updates) with configs managed by dotfiles. Use `./scripts/setup-ai-clis.sh` after a rebuild or on a fresh machine. It also renders the secret-backed Codex/OpenCode runtime configs.
+The repo uses two explicit post-rebuild scripts for developer tooling that should stay outside declarative Nix package installs:
+
+- `./scripts/setup-ai-clis.sh`: installs external AI CLIs that ship their own installers (`Claude Code`, `OpenCode`), renders secret-backed runtime configs, and aligns Claude MCP config
+- `./scripts/setup-js-globals.sh`: installs shared global JS CLIs through pnpm only (`Codex`, `turbo`, `vercel`, `tailwindcss`, `portless`)
+
+`bun` is installed through Nix so Bun-based repos work normally, but the dotfiles do not use Bun for machine-level global installs.
 
 ### Permissions
 

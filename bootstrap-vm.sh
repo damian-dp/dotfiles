@@ -204,24 +204,20 @@ echo "[8/12] Applying home-manager config..."
 nix run home-manager -- switch -b backup --flake "$HOME/code/dotfiles#damian@linux"
 
 # -----------------------------------------------------------------------------
-# [9/12] Install external AI CLIs + configure Claude MCP
+# [9/12] Install external AI CLIs + pnpm global JS CLIs
 # -----------------------------------------------------------------------------
 echo ""
-echo "[9/12] Installing external AI CLIs..."
+echo "[9/12] Installing external AI CLIs and pnpm globals..."
 "$HOME/code/dotfiles/scripts/setup-ai-clis.sh"
+"$HOME/code/dotfiles/scripts/setup-js-globals.sh"
 
-# Verify Vercel CLI access through the shared secret reference helper
-if [ -x "$HOME/.bun/bin/vercel" ]; then
-  VERCEL_TOKEN_VAL=$("$HOME/code/dotfiles/scripts/with-secrets.sh" vm --no-masking -- printenv VERCEL_TOKEN 2>/dev/null || true)
-  if [[ -n "$VERCEL_TOKEN_VAL" ]]; then
-    # Ensure node is in PATH (just installed by home-manager)
-    export PATH="$HOME/.nix-profile/bin:$PATH"
-    VERCEL_USER=$("$HOME/.bun/bin/vercel" whoami --token="$VERCEL_TOKEN_VAL" 2>/dev/null)
-    if [[ -n "$VERCEL_USER" ]]; then
-      echo "Vercel CLI authenticated as: $VERCEL_USER"
-    else
-      echo "WARNING: Vercel token found but authentication failed. Check VERCEL_TOKEN in 1Password."
-    fi
+# Verify Vercel CLI access through the shared secret reference helper and wrapper
+if [ -x "$HOME/.local/bin/vercel" ]; then
+  VERCEL_USER=$("$HOME/.local/bin/vercel" whoami 2>/dev/null || true)
+  if [[ -n "$VERCEL_USER" ]]; then
+    echo "Vercel CLI authenticated as: $VERCEL_USER"
+  else
+    echo "WARNING: Vercel CLI is installed but authentication failed. Check VERCEL_TOKEN in 1Password."
   fi
 fi
 

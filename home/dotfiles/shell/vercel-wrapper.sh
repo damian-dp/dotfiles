@@ -1,13 +1,25 @@
 #!/bin/bash
 # Vercel CLI wrapper for headless VMs
 # Resolves Vercel auth through the shared secret reference registry
-# Installed to ~/.local/bin/vercel, shadows ~/.bun/bin/vercel
+# Installed to ~/.local/bin/vercel, shadows the pnpm-provided vercel binary
 
 set -euo pipefail
 
 DOTFILES="${DOTFILES:-$HOME/code/dotfiles}"
 WITH_SECRETS="$DOTFILES/scripts/with-secrets.sh"
-REAL_VERCEL="$HOME/.bun/bin/vercel"
+
+REAL_VERCEL=""
+for p in "$HOME/.local/share/pnpm/vercel" "$HOME/Library/pnpm/vercel"; do
+  if [[ -x "$p" ]]; then
+    REAL_VERCEL="$p"
+    break
+  fi
+done
+
+if [[ -z "$REAL_VERCEL" ]]; then
+  echo "Error: could not find pnpm-provided vercel" >&2
+  exit 1
+fi
 
 # Default scope to tilt-legal (override with --scope)
 if [[ -x "$WITH_SECRETS" ]]; then

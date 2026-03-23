@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 WITH_SECRETS="$REPO_ROOT/scripts/with-secrets.sh"
 
-export PATH="$HOME/.local/bin:$HOME/.opencode/bin:$HOME/.bun/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.opencode/bin:$PATH"
 
 install_if_missing() {
   local target="$1"
@@ -20,24 +20,6 @@ install_if_missing() {
 
 install_if_missing "$HOME/.local/bin/claude" "Claude Code" "curl -fsSL https://claude.ai/install.sh | bash"
 install_if_missing "$HOME/.opencode/bin/opencode" "OpenCode" "curl -fsSL https://opencode.ai/install | bash"
-install_if_missing "$HOME/.bun/bin/bun" "Bun" "curl -fsSL https://bun.sh/install | bash"
-
-if [[ -x "$HOME/.bun/bin/bun" ]]; then
-  if ! "$HOME/.bun/bin/bun" pm ls -g 2>/dev/null | grep -q "turbo@"; then
-    echo "Installing Turborepo..."
-    "$HOME/.bun/bin/bun" add -g turbo@latest
-  fi
-
-  if ! "$HOME/.bun/bin/bun" pm ls -g 2>/dev/null | grep -q "vercel@"; then
-    echo "Installing Vercel CLI..."
-    "$HOME/.bun/bin/bun" add -g vercel
-  fi
-fi
-
-if ! command -v codex >/dev/null 2>&1 && command -v npm >/dev/null 2>&1; then
-  echo "Installing Codex..."
-  npm install -g @openai/codex
-fi
 
 echo "Rendering secret-backed runtime configs..."
 "$REPO_ROOT/scripts/render-secret-configs.sh"
@@ -65,5 +47,8 @@ fi
 
 echo ""
 echo "External AI CLI setup complete."
-echo "Runtime AI configs and CLI installs are now aligned with the repo state in:"
+echo "Runtime AI configs are now aligned with the repo state in:"
 echo "  $REPO_ROOT/home/dotfiles"
+echo ""
+echo "Install pnpm-managed global JS CLIs separately with:"
+echo "  $REPO_ROOT/scripts/setup-js-globals.sh"

@@ -4,6 +4,15 @@ set -euo pipefail
 role="${1:-auto}"
 os="$(uname -s)"
 
+if [[ "$os" == "Darwin" ]]; then
+  PNPM_HOME="${PNPM_HOME:-$HOME/Library/pnpm}"
+else
+  PNPM_HOME="${PNPM_HOME:-$HOME/.local/share/pnpm}"
+fi
+
+export PNPM_HOME
+export PATH="$HOME/.local/bin:$HOME/.opencode/bin:$PNPM_HOME:$PATH"
+
 pass_count=0
 warn_count=0
 fail_count=0
@@ -135,19 +144,32 @@ check_tailscale() {
   fi
 }
 
-check_ai_clis() {
-  for cmd in claude opencode codex bun; do
-    if command -v "$cmd" >/dev/null 2>&1; then
-      pass "$cmd is installed"
-    else
-      warn "$cmd is not installed"
-    fi
+check_external_ai_clis() {
+  for cmd in claude opencode; do
+    check_cmd "$cmd"
   done
+}
 
-  if command -v vercel >/dev/null 2>&1; then
-    pass "vercel is installed"
+check_js_tooling() {
+  check_cmd node "Node.js"
+  check_cmd pnpm "pnpm"
+  check_cmd bun "Bun runtime"
+
+  for cmd in codex turbo vercel tailwindcss portless; do
+    check_cmd "$cmd"
+  done
+}
+
+check_mac_container_runtime() {
+  check_cmd orb "OrbStack CLI"
+  check_cmd docker "Docker CLI"
+
+  local context=""
+  context="$(docker context show 2>/dev/null || true)"
+  if [[ "$context" == "orbstack" ]]; then
+    pass "Docker CLI is using the OrbStack context"
   else
-    warn "vercel is not installed"
+    fail "Docker CLI is not using the OrbStack context (${context:-no context})"
   fi
 }
 
@@ -226,7 +248,9 @@ check_mac() {
   check_cmd op "1Password CLI"
   check_psql_17
   check_tailscale
-  check_ai_clis
+  check_external_ai_clis
+  check_js_tooling
+  check_mac_container_runtime
   check_runtime_configs
   check_file "$HOME/Library/Application Support/Cursor/User/settings.json" "Cursor settings"
 
@@ -314,7 +338,8 @@ check_linux_common() {
   printf 'Role: %s\n' "$1"
   check_cmd op "1Password CLI"
   check_tailscale
-  check_ai_clis
+  check_external_ai_clis
+  check_js_tooling
   check_runtime_configs
   check_file "$HOME/.config/op/service-account-token" "1Password service account token file"
   check_file "$HOME/.ssh/id_ed25519_signing" "VM SSH private key"

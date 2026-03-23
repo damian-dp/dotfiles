@@ -23,7 +23,7 @@ Preferred source strategy:
 |-----|--------|-------|
 | [Zed](https://zed.dev/) | Homebrew Cask | Primary editor |
 | [Cursor](https://cursor.sh/) | Homebrew Cask | AI-assisted editor |
-| [OrbStack](https://orbstack.dev/) | Homebrew Cask | Docker & Linux VMs |
+| [OrbStack](https://orbstack.dev/) | Homebrew Cask | Provides the macOS Docker-compatible runtime and CLI |
 | [Warp](https://www.warp.dev/) | Homebrew Cask | Alternate terminal |
 | [T3 Code](https://t3.codes/) | Homebrew Cask | Minimal GUI for AI code agents |
 | [Figma](https://www.figma.com/) | Homebrew Cask | Design collaboration |
@@ -80,8 +80,13 @@ Preferred source strategy:
 
 These are not part of the GUI inventory:
 
-- Core CLI tools, `1password-cli`, and PostgreSQL 17 are managed in Nix.
-- External AI CLIs (`Claude Code`, `OpenCode`, `Codex`, Bun global tools) are installed via `./scripts/setup-ai-clis.sh`.
+- Core CLI tools, `1password-cli`, PostgreSQL 17, Node.js, pnpm, and Bun are managed in Nix.
+- `Bun` is installed as a runtime for repos that use it, but not used for machine-level global installs.
+- On macOS, `docker`/`docker compose` come from OrbStack rather than a separate Docker Desktop install.
+- On Linux VMs, `docker` and Compose come from Nix packages.
+- External AI CLIs with their own installers (`Claude Code`, `OpenCode`) are installed via `./scripts/setup-ai-clis.sh`.
+- Shared global JS CLIs (`Codex`, `turbo`, `vercel`, `tailwindcss`, `portless`) are installed via `./scripts/setup-js-globals.sh`.
+- The intended machine contract is: Homebrew/App Store for GUI apps, Nix for runtimes/system tools, pnpm for global JS CLIs, no npm globals, no Bun globals.
 
 ## Inventory Notes
 
