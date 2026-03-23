@@ -44,7 +44,6 @@
       "discord"
       "figma"
       "linear-linear"
-      "logitune"
       "notion"
       "nucleo"
       "setapp"
@@ -142,12 +141,41 @@
       StandardHideDesktopIcons = false;
     };
 
-    # Don't write .DS_Store on network/USB drives
     CustomUserPreferences = {
+      # Full trackpad configuration
+      "com.apple.AppleMultitouchTrackpad" = {
+        Clicking = 1;                               # Tap to click
+        TrackpadRightClick = 1;                      # Two-finger right click
+        TrackpadCornerSecondaryClick = 0;
+        TrackpadScroll = 1;
+        TrackpadHorizScroll = 1;
+        TrackpadMomentumScroll = 1;
+        TrackpadPinch = 1;                           # Pinch to zoom
+        TrackpadRotate = 1;                          # Rotate gesture
+        TrackpadThreeFingerDrag = 0;
+        TrackpadThreeFingerTapGesture = 0;
+        TrackpadThreeFingerHorizSwipeGesture = 2;
+        TrackpadThreeFingerVertSwipeGesture = 2;
+        TrackpadFourFingerHorizSwipeGesture = 2;
+        TrackpadFourFingerVertSwipeGesture = 2;
+        TrackpadFourFingerPinchGesture = 2;
+        TrackpadFiveFingerPinchGesture = 2;
+        TrackpadTwoFingerDoubleTapGesture = 1;       # Smart zoom
+        TrackpadTwoFingerFromRightEdgeSwipeGesture = 3; # Notification Centre
+        FirstClickThreshold = 0;                     # Click pressure: light
+        SecondClickThreshold = 0;
+        ActuationStrength = 1;                       # Haptic feedback strength
+        USBMouseStopsTrackpad = 0;
+        DragLock = 0;
+        Dragging = 0;
+      };
+
+      # Don't write .DS_Store on network/USB drives
       "com.apple.desktopservices" = {
         DSDontWriteNetworkStores = true;
         DSDontWriteUSBStores = true;
       };
+
       # Text Replacements (type @@ -> email, etc.)
       NSGlobalDomain = {
         NSUserDictionaryReplacementItems = [

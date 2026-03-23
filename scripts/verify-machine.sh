@@ -282,7 +282,6 @@ check_mac() {
     discord \
     figma \
     linear-linear \
-    logitune \
     notion \
     nucleo \
     setapp \
@@ -319,7 +318,6 @@ check_mac() {
     "Discord.app" \
     "Figma.app" \
     "Linear.app" \
-    "Logi Tune.app" \
     "Notion.app" \
     "Nucleo.app" \
     "Setapp.app" \
