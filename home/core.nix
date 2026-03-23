@@ -51,11 +51,7 @@
     typescript
     biome
 
-    # Web servers / reverse proxies
-    # caddy on Linux is handled in linux.nix (needs cap_net_bind_service for port 80)
     ] ++ lib.optionals stdenv.isDarwin [
-      caddy
-      _1password-cli
       postgresql_17
     ] ++ [
 

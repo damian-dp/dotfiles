@@ -65,22 +65,13 @@ After completion, access OpenCode from any Tailscale device:
 
 ```bash
 # Install Nix first (for example with the official installer or Lix),
-# then clone the repo and apply the host config.
+# then clone the repo and run the host bootstrap.
 git clone https://github.com/damian-dp/dotfiles.git ~/code/dotfiles
 cd ~/code/dotfiles
-sudo nix run github:nix-darwin/nix-darwin/master#darwin-rebuild -- switch --flake .#Damian-MBP
+./scripts/bootstrap-mac.sh Damian-Studio
 
-# Or for the always-on desktop:
-sudo nix run github:nix-darwin/nix-darwin/master#darwin-rebuild -- switch --flake .#Damian-Studio
-
-# Install external AI CLIs explicitly
-./scripts/setup-ai-clis.sh
-
-# Install global JS CLIs through pnpm
-./scripts/setup-js-globals.sh
-
-# Verify the machine state
-./scripts/verify-machine.sh mac
+# Or for the laptop:
+./scripts/bootstrap-mac.sh Damian-MBP
 ```
 
 If you want App Store apps (`1Password for Safari`, `Caffeinated`, `BetterJSON`, `WhatFont`) to install on the first pass, sign into the App Store before running `darwin-rebuild`. Otherwise, sign in and run `darwin-rebuild switch` again.
@@ -97,7 +88,7 @@ home-manager switch --flake .#damian@linux
 # macOS
 darwin-rebuild switch --flake .#Damian-MBP
 
-# Re-sync external tool installs after a fresh machine or if desired
+# Re-sync external tool installs after a fresh machine or when you want to refresh them
 ./scripts/setup-ai-clis.sh
 ./scripts/setup-js-globals.sh
 ```
@@ -149,6 +140,7 @@ dotfiles/
 │       └── studio.nix        # Mac Studio host identity
 │
 ├── scripts/
+│   ├── bootstrap-mac.sh      # Fresh macOS bootstrap (rebuild + tool install + verification)
 │   ├── setup-ai-clis.sh      # Explicit installer/configurer for external AI CLIs
 │   ├── setup-js-globals.sh   # Install global JS CLIs through pnpm only
 │   ├── with-secrets.sh       # Run commands with secret refs resolved by 1Password
@@ -178,7 +170,7 @@ dotfiles/
 ### Both Platforms (core.nix)
 
 - **Shell**: zsh + oh-my-zsh + Powerlevel10k
-- **Tools**: git, gh, curl, wget, ripgrep, fd, fzf, eza, zoxide, delta, lazygit, jq, tree, htop, btop, tmux, direnv, caddy
+- **Tools**: git, gh, curl, wget, ripgrep, fd, fzf, eza, zoxide, delta, lazygit, jq, tree, htop, btop, tmux, direnv
 - **Python**: uv (fast Python package manager)
 - **JS**: Node.js, pnpm, Bun runtime
 - **LSP**: typescript-language-server, biome (used by AI coding tools)
@@ -189,10 +181,11 @@ dotfiles/
 ### macOS Workstation (workstation.nix + darwin/common.nix + darwin/hosts/*)
 
 - **Fonts**: Nerd Fonts (Meslo, JetBrains Mono)
-- **Tools**: bat, 1Password CLI, PostgreSQL 17 client tools
+- **Tools**: bat, PostgreSQL 17 client tools, 1Password CLI via Homebrew
 - **Containers**: OrbStack provides the macOS `docker`, `docker compose`, and related Docker CLI workflow
 - **App configs**: Ghostty, Zed, Cursor, Warp (launch configs)
 - **Apps**: managed declaratively via Homebrew casks + App Store apps
+- **Setapp**: `Setapp.app` is declarative; required Setapp-licensed apps such as `OpenIn` and `Typeface` are documented in `APPS.md` and installed through Setapp itself
 - **System prefs**: auto light/dark mode, Finder show extensions/path bar, text replacements
 - **Services**: Tailscale, Touch ID for sudo
 
@@ -200,7 +193,6 @@ dotfiles/
 
 - **OpenCode**: systemd service running `opencode web` on port 4096
 - **Containers**: Docker Engine + Compose on Linux; use the same `docker` CLI workflow as macOS
-- **Caddy**: copied with `cap_net_bind_service` for port 80 binding
 - **CLI wrappers**: `pnpm` and `vercel` wrappers that inject 1Password tokens
 - **Git hooks**: global hooks prevent commits and pushes to `main`/`master` branches
 - **Access**: OpenCode restricted to `tailscale0` by host firewall rules
@@ -213,6 +205,8 @@ The repo uses two explicit post-rebuild scripts for developer tooling that shoul
 - `./scripts/setup-js-globals.sh`: installs shared global JS CLIs through pnpm only (`Codex`, `turbo`, `vercel`, `tailwindcss`, `portless`)
 
 `bun` is installed through Nix so Bun-based repos work normally, but the dotfiles do not use Bun for machine-level global installs.
+
+These remain explicit scripts on purpose. They are imperative, networked vendor installs and global package mutations, so they are intentionally kept out of Home Manager activation. `scripts/bootstrap-mac.sh` is the one-command wrapper for a fresh Mac.
 
 ### Permissions
 

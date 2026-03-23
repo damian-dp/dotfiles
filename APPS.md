@@ -66,6 +66,15 @@ Preferred source strategy:
 | BetterJSON | App Store (`mas`) | JSON viewer/editor |
 | WhatFont | App Store (`mas`) | Font inspection tool |
 
+## Setapp-Managed Apps
+
+These apps matter to the machine setup, but they should be installed through Setapp itself rather than standalone casks so licensing and entitlement stay on the Setapp path.
+
+| App | Source | Notes |
+|-----|--------|-------|
+| [OpenIn](https://setapp.com/apps/openin) | Manual via Setapp | Required default-browser/link-routing workflow |
+| [Typeface](https://setapp.com/apps/typeface) | Manual via Setapp | Required font management workflow |
+
 ## Design / Utilities
 
 | App | Source | Notes |
@@ -80,7 +89,9 @@ Preferred source strategy:
 
 These are not part of the GUI inventory:
 
-- Core CLI tools, `1password-cli`, PostgreSQL 17, Node.js, pnpm, and Bun are managed in Nix.
+- On macOS, `1password-cli` is managed via Homebrew cask.
+- On Linux VMs, `1password-cli` is installed by `bootstrap-vm.sh` from 1Password's apt repository.
+- PostgreSQL 17, Node.js, pnpm, and Bun are managed in Nix.
 - `Bun` is installed as a runtime for repos that use it, but not used for machine-level global installs.
 - On macOS, `docker`/`docker compose` come from OrbStack rather than a separate Docker Desktop install.
 - On Linux VMs, `docker` and Compose come from Nix packages.

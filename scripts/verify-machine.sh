@@ -256,6 +256,7 @@ check_mac() {
 
   for cask in \
     1password \
+    1password-cli \
     ghostty \
     tailscale-app \
     zed \
