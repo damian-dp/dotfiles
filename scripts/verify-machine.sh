@@ -239,6 +239,7 @@ check_mac() {
     orbstack \
     google-chrome \
     raycast \
+    t3-code \
     microsoft-outlook \
     microsoft-teams \
     microsoft-excel \
@@ -256,6 +257,7 @@ check_mac() {
     discord \
     figma \
     linear-linear \
+    logitune \
     notion \
     nucleo \
     setapp \
@@ -274,6 +276,7 @@ check_mac() {
     "OrbStack.app" \
     "Google Chrome.app" \
     "Raycast.app" \
+    "T3 Code (Alpha).app" \
     "Microsoft Outlook.app" \
     "Microsoft Teams.app" \
     "Microsoft Excel.app" \
@@ -291,6 +294,7 @@ check_mac() {
     "Discord.app" \
     "Figma.app" \
     "Linear.app" \
+    "Logi Tune.app" \
     "Notion.app" \
     "Nucleo.app" \
     "Setapp.app" \
@@ -300,6 +304,7 @@ check_mac() {
     check_app "$app"
   done
 
+  check_mas_app 1362171212 "Caffeinated"
   check_mas_app 1569813296 "1Password for Safari"
   check_mas_app 1511935951 "BetterJSON"
   check_mas_app 1437138382 "WhatFont"

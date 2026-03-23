@@ -25,8 +25,10 @@ Preferred source strategy:
 | [Cursor](https://cursor.sh/) | Homebrew Cask | AI-assisted editor |
 | [OrbStack](https://orbstack.dev/) | Homebrew Cask | Docker & Linux VMs |
 | [Warp](https://www.warp.dev/) | Homebrew Cask | Alternate terminal |
+| [T3 Code](https://t3.codes/) | Homebrew Cask | Minimal GUI for AI code agents |
 | [Figma](https://www.figma.com/) | Homebrew Cask | Design collaboration |
 | [Linear](https://linear.app/) | Homebrew Cask | Issue tracking |
+| [Logi Tune](https://www.logitech.com/en-us/video-collaboration/software/logi-tune-software.html) | Homebrew Cask | Logitech device management |
 | [Nucleo](https://nucleoapp.com/) | Homebrew Cask | Icon manager |
 
 ## Browsers
@@ -60,6 +62,7 @@ Preferred source strategy:
 | [Notion](https://www.notion.com/) | Homebrew Cask | Notes and docs |
 | [Setapp](https://setapp.com/) | Homebrew Cask | Subscription app launcher |
 | [Spotify](https://www.spotify.com/) | Homebrew Cask | Music |
+| Caffeinated | App Store (`mas`) | Keep Mac awake |
 | BetterJSON | App Store (`mas`) | JSON viewer/editor |
 | WhatFont | App Store (`mas`) | Font inspection tool |
 
@@ -112,5 +115,5 @@ Config is copied from `configs/cursor/settings.json` into `~/Library/Application
 
 ### App Store apps
 
-1Password for Safari, BetterJSON, and WhatFont are managed through `mas`.
+1Password for Safari, Caffeinated, BetterJSON, and WhatFont are managed through `mas`.
 On a fresh Mac, sign into the App Store first so `darwin-rebuild` can install them.

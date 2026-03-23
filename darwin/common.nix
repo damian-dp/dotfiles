@@ -25,6 +25,7 @@
       "orbstack"
       "google-chrome"
       "raycast"
+      "t3-code"
       "microsoft-outlook"
       "microsoft-teams"
       "microsoft-excel"
@@ -42,6 +43,7 @@
       "discord"
       "figma"
       "linear-linear"
+      "logitune"
       "notion"
       "nucleo"
       "setapp"
@@ -49,6 +51,7 @@
       "warp"
     ];
     masApps = {
+      "Caffeinated" = 1362171212;
       "1Password for Safari" = 1569813296;
       "BetterJSON" = 1511935951;
       "WhatFont" = 1437138382;
