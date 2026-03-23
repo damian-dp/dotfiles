@@ -15,7 +15,7 @@ case "$HOST" in
 esac
 
 echo "==> Applying nix-darwin host: $HOST"
-sudo nix run github:nix-darwin/nix-darwin/master#darwin-rebuild -- switch --flake "$REPO_ROOT#$HOST"
+sudo -H nix run github:nix-darwin/nix-darwin/master#darwin-rebuild -- switch --flake "$REPO_ROOT#$HOST"
 
 echo ""
 echo "==> Installing external AI CLIs"
