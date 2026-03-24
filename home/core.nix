@@ -71,6 +71,11 @@
   home.file = {
     ".zshrc.local".source = ./dotfiles/zshrc;
     ".p10k.zsh".source = ./dotfiles/p10k.zsh;
+    ".npmrc".text = ''
+      @tilt-legal:registry=https://npm.pkg.github.com
+      //npm.pkg.github.com/:_authToken=''${GH_NPM_TOKEN}
+      always-auth=true
+    '';
     # Platform-specific 1Password signing paths (included by programs.git)
     ".gitconfig-macos".source = ./dotfiles/gitconfig-macos;
     ".gitconfig-linux".source = ./dotfiles/gitconfig-linux;
@@ -104,6 +109,10 @@
 
     # Shell functions
     ".config/shell/commit.sh".source = ./dotfiles/shell/commit.sh;
+    ".local/bin/pnpm" = {
+      source = ./dotfiles/shell/pnpm-wrapper.sh;
+      executable = true;
+    };
 
     # Claude CLI - CLAUDE.md symlinked (instructions only, never written)
     ".claude/CLAUDE.md".source = ./dotfiles/claude/CLAUDE.md;
@@ -230,6 +239,7 @@
   home.sessionVariables = {
     EDITOR = if pkgs.stdenv.isDarwin then "zed --wait" else "vim";
     VISUAL = if pkgs.stdenv.isDarwin then "zed --wait" else "vim";
+    DOTFILES = "$HOME/code/dotfiles";
   };
 
   # =============================================================================

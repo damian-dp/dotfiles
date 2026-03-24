@@ -34,8 +34,8 @@ if [[ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]] && [[ -f "$HOME/.config/op/service-accou
 fi
 
 
-# GitHub NPM token (macOS only - lazy-load via function)
-# VM uses pnpm wrapper at ~/.local/bin/pnpm instead (no shell startup delay)
+# GitHub Packages token helper (debug/manual use only).
+# The main package-manager path is repo-managed .npmrc + ~/.local/bin/pnpm.
 if [[ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]]; then
   gh_npm_token() {
     local dotfiles="${DOTFILES:-$HOME/code/dotfiles}"

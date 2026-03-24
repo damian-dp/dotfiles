@@ -22,9 +22,5 @@
       source = ./dotfiles/shell/vercel-wrapper.sh;
       executable = true;
     };
-    ".local/bin/pnpm" = {
-      source = ./dotfiles/shell/pnpm-wrapper.sh;
-      executable = true;
-    };
   };
 }

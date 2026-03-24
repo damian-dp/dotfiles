@@ -11,4 +11,5 @@ Rules:
 - Commit only `op://...` references here, never plaintext secrets.
 - Render secret-backed runtime configs with `./scripts/render-secret-configs.sh`.
 - Run commands with secret-backed environment variables through `./scripts/with-secrets.sh`.
+- For GitHub Packages auth, use the repo-managed `~/.npmrc` plus `~/.local/bin/pnpm` wrapper instead of exporting `GH_NPM_TOKEN` in shell startup files.
 - Add new secret references here first, then wire them into templates or wrappers.

@@ -31,7 +31,7 @@
       "microsoft-teams"
       "microsoft-excel"
       "microsoft-word"
-      "onedrive"
+      "homebrew/cask/onedrive"
       "affinity-designer"
       "affinity-photo"
       "affinity-publisher"

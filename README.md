@@ -76,6 +76,8 @@ cd ~/code/dotfiles
 
 If you want App Store apps (`1Password for Safari`, `Caffeinated`, `BetterJSON`, `WhatFont`) to install on the first pass, sign into the App Store before running `darwin-rebuild`. Otherwise, sign in and run `darwin-rebuild switch` again.
 
+The steady-state repo location is `~/code/dotfiles`. If you bootstrap from a downloaded ZIP first, move or clone the repo there afterwards so helper scripts and wrappers continue to resolve `DOTFILES` correctly.
+
 ### Updating
 
 ```bash
@@ -123,7 +125,7 @@ dotfiles/
 │       ├── tmux.conf         # Tmux config
 │       ├── shell/
 │       │   ├── commit.sh         # Claude-powered commit messages
-│       │   ├── pnpm-wrapper.sh   # Injects GH_NPM_TOKEN on Linux VMs
+│       │   ├── pnpm-wrapper.sh   # Injects GH_NPM_TOKEN for pnpm on all machines
 │       │   ├── vercel-wrapper.sh # Injects Vercel token on Linux VMs
 │       │   └── git-hooks/        # Global git hooks (Linux VMs only)
 │       │       ├── pre-commit    # Blocks commits to main/master
@@ -193,7 +195,7 @@ dotfiles/
 
 - **OpenCode**: systemd service running `opencode web` on port 4096
 - **Containers**: Docker Engine + Compose on Linux; use the same `docker` CLI workflow as macOS
-- **CLI wrappers**: `pnpm` and `vercel` wrappers that inject 1Password tokens
+- **CLI wrappers**: `pnpm` injects `GH_NPM_TOKEN` through the shared secret registry; `vercel` does the same for `VERCEL_TOKEN` on Linux VMs
 - **Git hooks**: global hooks prevent commits and pushes to `main`/`master` branches
 - **Access**: OpenCode restricted to `tailscale0` by host firewall rules
 
@@ -296,7 +298,7 @@ The VM uses a 1Password **Service Account** scoped to the VM vault only (no acce
 | Tailscale auth key | `TS_AUTH_KEY` | Used once during bootstrap (not persisted) |
 | SSH signing key | `GH_SSH_KEY` | Extracted to `~/.ssh/id_ed25519_signing` (needed on disk for git/ssh) |
 | GitHub OAuth | (device code flow) | `gh auth login --web` during bootstrap for `gh` API usage, stored in `~/.config/gh/hosts.yml` |
-| GitHub classic PAT | `GH_CLASSIC_PAT` | Exposed to Linux `pnpm` through `scripts/with-secrets.sh` |
+| GitHub classic PAT | `GH_CLASSIC_PAT` | Exposed to `pnpm` through the shared `~/.local/bin/pnpm` wrapper and `~/.npmrc` |
 | Vercel token | `VERCEL_TOKEN` | Exposed to Linux `vercel` through `scripts/with-secrets.sh` |
 | Vercel bypass secret | `VERCEL_BYPASS_SECRET` | Rendered into Codex/OpenCode configs by `scripts/render-secret-configs.sh` |
 
@@ -308,6 +310,7 @@ The source of truth for secret wiring is in `secrets/refs/`. Add new `op://...` 
 
 - `./scripts/with-secrets.sh` for one-off commands or wrappers
 - `./scripts/render-secret-configs.sh` for runtime config files
+- `~/.npmrc` + `~/.local/bin/pnpm` for GitHub Packages auth without exporting `GH_NPM_TOKEN` at shell startup
 
 This keeps secrets out of Nix activation and out of git-tracked runtime files.
 

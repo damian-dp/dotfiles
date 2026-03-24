@@ -155,6 +155,14 @@ check_js_tooling() {
   check_cmd pnpm "pnpm"
   check_cmd bun "Bun runtime"
 
+  check_file "$HOME/.npmrc" "npm auth config"
+
+  if [[ -x "$HOME/.local/bin/pnpm" ]]; then
+    pass "pnpm wrapper is installed"
+  else
+    fail "pnpm wrapper is missing from ~/.local/bin/pnpm"
+  fi
+
   for cmd in codex turbo vercel tailwindcss portless; do
     check_cmd "$cmd"
   done
@@ -343,12 +351,6 @@ check_linux_common() {
   check_file "$HOME/.config/op/service-account-token" "1Password service account token file"
   check_file "$HOME/.ssh/id_ed25519_signing" "VM SSH private key"
   check_file "$HOME/.ssh/id_ed25519_signing.pub" "VM SSH public key"
-
-  if [[ -x "$HOME/.local/bin/pnpm" ]]; then
-    pass "pnpm wrapper is installed"
-  else
-    warn "pnpm wrapper is not installed"
-  fi
 
   if [[ -x "$HOME/.local/bin/vercel" ]]; then
     pass "vercel wrapper is installed"

@@ -1,7 +1,7 @@
 #!/bin/bash
-# pnpm wrapper for headless VMs
-# Runs pnpm with GH_NPM_TOKEN sourced from the shared secret reference registry
-# Installed to ~/.local/bin/pnpm, shadows nix-provided pnpm
+# pnpm wrapper for secret-backed GitHub Packages auth on all machines.
+# Runs pnpm with GH_NPM_TOKEN resolved through the shared secret registry.
+# Installed to ~/.local/bin/pnpm, shadows nix-provided pnpm.
 
 set -euo pipefail
 
@@ -23,7 +23,7 @@ if [[ -z "$REAL_PNPM" ]]; then
 fi
 
 if [[ -x "$WITH_SECRETS" ]]; then
-  exec "$WITH_SECRETS" vm -- "$REAL_PNPM" "$@"
+  exec "$WITH_SECRETS" auto -- "$REAL_PNPM" "$@"
 fi
 
 exec "$REAL_PNPM" "$@"
