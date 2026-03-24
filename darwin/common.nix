@@ -190,7 +190,8 @@
   # =============================================================================
   # Services
   # =============================================================================
-  services.tailscale.enable = true;
+  # Tailscale is managed by the Homebrew cask (tailscale-app), not nix-darwin
+  # services.tailscale.enable = true;
 
   # =============================================================================
   # Primary User (required for user-specific settings)
