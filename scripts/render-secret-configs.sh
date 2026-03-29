@@ -20,7 +20,7 @@ render_template() {
   mkdir -p "$(dirname "$output")"
   temp_file="$(mktemp "${TMPDIR:-/tmp}/render-secret-config.XXXXXX")"
 
-  if ! "$WITH_SECRETS" "$context" -- bash -c 'envsubst < "$1" > "$2"' bash "$template" "$temp_file"; then
+  if ! "$WITH_SECRETS" "$context" --no-masking -- bash -c 'envsubst < "$1" > "$2"' bash "$template" "$temp_file"; then
     rm -f "$temp_file"
     echo "Failed to render $output" >&2
     exit 1
@@ -40,6 +40,7 @@ copy_file() {
   chmod "$mode" "$output"
 }
 
+render_template "$REPO_ROOT/secrets/templates/npm-token" "$HOME/.config/npm/token" 600
 render_template "$REPO_ROOT/home/dotfiles/codex/config.toml" "$HOME/.codex/config.toml" 600
 render_template "$REPO_ROOT/home/dotfiles/opencode/opencode.json" "$HOME/.config/opencode/opencode.json" 600
 copy_file "$REPO_ROOT/home/dotfiles/opencode/package.json" "$HOME/.config/opencode/package.json" 644

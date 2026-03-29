@@ -34,19 +34,9 @@ if [[ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]] && [[ -f "$HOME/.config/op/service-accou
 fi
 
 
-# GitHub Packages token helper (debug/manual use only).
-# The main package-manager path is repo-managed .npmrc + ~/.local/bin/pnpm.
-if [[ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]]; then
-  gh_npm_token() {
-    local dotfiles="${DOTFILES:-$HOME/code/dotfiles}"
-    local with_secrets="$dotfiles/scripts/with-secrets.sh"
-    if [[ -z "$GH_NPM_TOKEN" ]]; then
-      if [[ -x "$with_secrets" ]]; then
-        export GH_NPM_TOKEN="$("$with_secrets" mac --no-masking -- printenv GH_NPM_TOKEN 2>/dev/null)"
-      fi
-    fi
-    echo "$GH_NPM_TOKEN"
-  }
+# GitHub NPM token (baked at rebuild time by render-secret-configs.sh)
+if [[ -z "$GH_NPM_TOKEN" ]] && [[ -f "$HOME/.config/npm/token" ]]; then
+  export GH_NPM_TOKEN=$(cat "$HOME/.config/npm/token")
 fi
 
 # =============================================================================

@@ -71,11 +71,7 @@
   home.file = {
     ".zshrc.local".source = ./dotfiles/zshrc;
     ".p10k.zsh".source = ./dotfiles/p10k.zsh;
-    ".npmrc".text = ''
-      @tilt-legal:registry=https://npm.pkg.github.com
-      //npm.pkg.github.com/:_authToken=''${GH_NPM_TOKEN}
-      always-auth=true
-    '';
+    ".npmrc".source = ./dotfiles/npmrc;
     # Platform-specific 1Password signing paths (included by programs.git)
     ".gitconfig-macos".source = ./dotfiles/gitconfig-macos;
     ".gitconfig-linux".source = ./dotfiles/gitconfig-linux;

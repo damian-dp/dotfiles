@@ -8,6 +8,9 @@ secrets/*
 !secrets/refs/
 secrets/refs/*
 !secrets/refs/*.env
+!secrets/templates/
+secrets/templates/*
+!secrets/templates/npm-token
 *.secret
 *.key
 .secrets
