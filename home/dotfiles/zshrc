@@ -222,3 +222,5 @@ dotfiles-sync() {
 # Powerlevel10k Config
 # =============================================================================
 [[ -f "$HOME/.p10k.zsh" ]] && source "$HOME/.p10k.zsh"
+
+# test commit - safe to remove
