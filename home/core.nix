@@ -137,6 +137,9 @@
     # Source custom zshrc for additional config (p10k, secrets, etc.)
     initContent = ''
       [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
+
+      # OpenClaw shell completions
+      [[ -f "$HOME/.openclaw/completions/openclaw.zsh" ]] && source "$HOME/.openclaw/completions/openclaw.zsh"
     '';
   };
 
