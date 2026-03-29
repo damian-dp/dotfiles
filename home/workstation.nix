@@ -87,7 +87,7 @@
       buffer_line_height = "comfortable";
       buffer_font_family = ".ZedMono";
       terminal = {
-        font_family = "MesloLGS NF";
+        font_family = "MesloLGS Nerd Font";
       };
       file_types = {
         tailwindcss = [
