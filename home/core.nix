@@ -292,8 +292,10 @@
 
       # Terminal.app profile (macOS only - copy to tmp so Terminal.app uses the correct profile name)
       if [ "$(uname -s)" = "Darwin" ]; then
-        $DRY_RUN_CMD cp ${./dotfiles/PowerLevel10K.terminal} /tmp/PowerLevel10K.terminal
-        $DRY_RUN_CMD /usr/bin/open /tmp/PowerLevel10K.terminal
+        local _tmpterm
+        _tmpterm="$(mktemp -d)/PowerLevel10K.terminal"
+        $DRY_RUN_CMD cp ${./dotfiles/PowerLevel10K.terminal} "$_tmpterm"
+        $DRY_RUN_CMD /usr/bin/open "$_tmpterm"
         $DRY_RUN_CMD /usr/bin/defaults write com.apple.Terminal "Default Window Settings" -string "PowerLevel10K"
         $DRY_RUN_CMD /usr/bin/defaults write com.apple.Terminal "Startup Window Settings" -string "PowerLevel10K"
       fi
