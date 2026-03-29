@@ -67,7 +67,9 @@
           model = "gpt-5-mini";
         };
         play_sound_when_agent_done = true;
-        always_allow_tool_actions = true;
+        tool_permissions = {
+          default = "allow";
+        };
         model_parameters = [];
       };
       calls = {
