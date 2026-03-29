@@ -105,10 +105,6 @@
 
     # Shell functions
     ".config/shell/commit.sh".source = ./dotfiles/shell/commit.sh;
-    ".local/bin/pnpm" = {
-      source = ./dotfiles/shell/pnpm-wrapper.sh;
-      executable = true;
-    };
 
     # Claude CLI - CLAUDE.md symlinked (instructions only, never written)
     ".claude/CLAUDE.md".source = ./dotfiles/claude/CLAUDE.md;
@@ -292,7 +288,6 @@
 
       # Terminal.app profile (macOS only - copy to tmp so Terminal.app uses the correct profile name)
       if [ "$(uname -s)" = "Darwin" ]; then
-        local _tmpterm
         _tmpterm="$(mktemp -d)/PowerLevel10K.terminal"
         $DRY_RUN_CMD cp ${./dotfiles/PowerLevel10K.terminal} "$_tmpterm"
         $DRY_RUN_CMD /usr/bin/open "$_tmpterm"
