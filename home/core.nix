@@ -290,6 +290,13 @@
       $DRY_RUN_CMD cp ${./dotfiles/claude/settings.json} "$HOME/.claude/settings.json"
       $DRY_RUN_CMD chmod 644 "$HOME/.claude/settings.json"
 
+      # Terminal.app profile (macOS only)
+      if [ "$(uname -s)" = "Darwin" ]; then
+        $DRY_RUN_CMD /usr/bin/open ${./dotfiles/PowerLevel10K.terminal}
+        $DRY_RUN_CMD /usr/bin/defaults write com.apple.Terminal "Default Window Settings" -string "PowerLevel10K"
+        $DRY_RUN_CMD /usr/bin/defaults write com.apple.Terminal "Startup Window Settings" -string "PowerLevel10K"
+      fi
+
       # OpenCode package metadata (runtime config is rendered explicitly)
       $DRY_RUN_CMD mkdir -p "$HOME/.config/opencode"
       $DRY_RUN_CMD cp ${./dotfiles/opencode/package.json} "$HOME/.config/opencode/package.json"
