@@ -124,15 +124,23 @@
   programs.zsh = {
     enable = true;
 
-    # Source nix daemon for standalone home-manager on Linux
-    # This ensures nix-profile/bin is in PATH before zsh starts
-    # (nix-darwin handles this automatically, but standalone home-manager doesn't)
-    envExtra = lib.optionalString pkgs.stdenv.isLinux ''
-      # Source nix daemon for PATH setup (standalone home-manager on Linux)
-      if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
-        . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
-      fi
-    '';
+    # Keep minimal shell env available in non-interactive zsh too (ssh commands,
+    # remote helpers, and other zsh -c entrypoints).
+    envExtra =
+      lib.optionalString pkgs.stdenv.isLinux ''
+        # Source nix daemon for PATH setup (standalone home-manager on Linux)
+        if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+          . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+        fi
+      ''
+      + ''
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+          export PNPM_HOME="$HOME/Library/pnpm"
+        else
+          export PNPM_HOME="$HOME/.local/share/pnpm"
+        fi
+        [[ -d "$PNPM_HOME" ]] && export PATH="$PNPM_HOME:$PATH"
+      '';
 
     # Source custom zshrc for additional config (p10k, secrets, etc.)
     initContent = ''
