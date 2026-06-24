@@ -47,7 +47,7 @@
     bun
 
     # LSP servers (used by Claude Code plugins)
-    nodePackages.typescript-language-server
+    typescript-language-server
     typescript
     biome
 
