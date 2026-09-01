@@ -1,5 +1,9 @@
 { config, pkgs, lib, ... }:
 
+let
+  bun = import ./packages/bun.nix { inherit pkgs lib; };
+in
+
 # Core configuration - shared by all machines (Linux thin + macOS workstation)
 {
   home.username = lib.mkDefault "damian";  # Overridden per-platform in flake.nix

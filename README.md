@@ -165,7 +165,7 @@ dotfiles/
 - **Homebrew casks**: proprietary macOS GUI apps
 - **App Store (`mas`)**: App Store-only apps
 - **pnpm globals**: shared JS CLIs that should exist on every machine (`codex`, `turbo`, `vercel`, `tailwindcss`, `portless`)
-- **Bun**: installed by Nix as a runtime for repos that use Bun, but not used for machine-level global installs
+- **Bun**: the official release binary is pinned in `home/packages/bun.nix` and installed declaratively by Nix
 - **npm globals**: intentionally unused
 - **Bun globals**: intentionally unused
 
@@ -206,7 +206,7 @@ The repo uses two explicit post-rebuild scripts for developer tooling that shoul
 - `./scripts/setup-ai-clis.sh`: installs external AI CLIs that ship their own installers (`Claude Code`, `OpenCode`), renders secret-backed runtime configs, and aligns Claude MCP config
 - `./scripts/setup-js-globals.sh`: installs shared global JS CLIs through pnpm only (`Codex`, `turbo`, `vercel`, `tailwindcss`, `portless`)
 
-`bun` is installed through Nix so Bun-based repos work normally, but the dotfiles do not use Bun for machine-level global installs.
+`bun` is installed through Nix from the official release binary so Bun-based repos work normally. Its version and platform hashes are pinned in `home/packages/bun.nix`; Bun global packages remain intentionally unused.
 
 These remain explicit scripts on purpose. They are imperative, networked vendor installs and global package mutations, so they are intentionally kept out of Home Manager activation. `scripts/bootstrap-mac.sh` is the one-command wrapper for a fresh Mac.
 
@@ -374,6 +374,8 @@ cd ~/code/dotfiles
 nix flake update
 darwin-rebuild switch --flake .#Damian-MBP  # or home-manager for Linux
 ```
+
+The Bun runtime is pinned separately from Nixpkgs in `home/packages/bun.nix`. To upgrade it, update the version and the official release archive hashes for each supported platform, then rebuild the relevant machine configuration.
 
 ## Verification
 
