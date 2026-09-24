@@ -12,6 +12,10 @@
       url = "github:homebrew/homebrew-cask";
       flake = false;
     };
+    homebrew-azure-cli = {
+      url = "github:Azure/homebrew-azure-cli";
+      flake = false;
+    };
     
     home-manager = {
       url = "github:nix-community/home-manager";
@@ -24,7 +28,7 @@
     };
   };
 
-  outputs = inputs@{ self, nixpkgs, nix-homebrew, homebrew-core, homebrew-cask, home-manager, nix-darwin, ... }:
+  outputs = inputs@{ self, nixpkgs, nix-homebrew, homebrew-core, homebrew-cask, homebrew-azure-cli, home-manager, nix-darwin, ... }:
     let
       lib = nixpkgs.lib;
       mkDarwinConfiguration = hostModule:
@@ -43,7 +47,9 @@
                 taps = {
                   "homebrew/homebrew-core" = homebrew-core;
                   "homebrew/homebrew-cask" = homebrew-cask;
+                  "azure/homebrew-azure-cli" = homebrew-azure-cli;
                 };
+                trust.casks = [ "azure/azure-cli/azure-cli-preview" ];
                 mutableTaps = false;
                 user = "damian";
               };

@@ -391,11 +391,13 @@ Replace `7.0.6` with the desired release. Refresh the Homebrew integration and t
 
 ```bash
 cd ~/code/dotfiles
-nix flake update nix-homebrew homebrew-core homebrew-cask
+nix flake update nix-homebrew homebrew-core homebrew-cask homebrew-azure-cli
 ./scripts/apply-homebrew.sh  # detects the current Mac, or pass Damian-Studio / Damian-MBP
 ```
 
 These input updates leave Nixpkgs and Home Manager pinned. The script builds the Mac configuration and applies only Homebrew and its taps, without installing, upgrading, or removing applications. It keeps the build rooted at `${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/homebrew-system` so Nix garbage collection cannot remove the active Homebrew version.
+
+The Azure CLI tap is declared as `homebrew-azure-cli` in `flake.nix`, with trust limited to its `azure-cli-preview` cask. Taps remain immutable and owned by Nix; add future taps to the flake instead of running `brew tap`.
 
 A full `sudo darwin-rebuild switch --flake .#Damian-Studio` (or `.#Damian-MBP`) also applies the update, but runs the existing application cleanup policy, which can uninstall apps absent from `darwin/common.nix`.
 

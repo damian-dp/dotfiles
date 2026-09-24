@@ -37,6 +37,22 @@
         "type": "github"
       }
     },
+    "homebrew-azure-cli": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1789958238,
+        "narHash": "sha256-83i6nBL1JYI89QhMq8V1knbi/nEZtBmSh4LPeW1X9vM=",
+        "owner": "Azure",
+        "repo": "homebrew-azure-cli",
+        "rev": "2de03083882e29b747726ac9785c99d749fdc56f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Azure",
+        "repo": "homebrew-azure-cli",
+        "type": "github"
+      }
+    },
     "homebrew-cask": {
       "flake": false,
       "locked": {
@@ -126,6 +142,7 @@
     "root": {
       "inputs": {
         "home-manager": "home-manager",
+        "homebrew-azure-cli": "homebrew-azure-cli",
         "homebrew-cask": "homebrew-cask",
         "homebrew-core": "homebrew-core",
         "nix-darwin": "nix-darwin",
