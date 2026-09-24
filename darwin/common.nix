@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
   # =============================================================================
@@ -13,6 +13,20 @@
   # =============================================================================
   # Homebrew / App Store
   # =============================================================================
+  # Pin Homebrew independently of nix-homebrew's bundled version.
+  nix-homebrew.package = let
+    version = "7.0.6";
+  in pkgs.fetchFromGitHub {
+    name = "brew-${version}";
+    owner = "Homebrew";
+    repo = "brew";
+    rev = version;
+    hash = "sha256-7Rc3LKFvjgqXiMPtcpWAf6Qk7bEgi23bSRl35DfYohs=";
+  } // { inherit version; };
+
+  # Homebrew 7 moved version detection out of the code nix-homebrew patches.
+  nix-homebrew.extraEnv.HOMEBREW_VERSION = config.nix-homebrew.package.version;
+
   homebrew = {
     enable = true;
     brews = [ "mas" ];

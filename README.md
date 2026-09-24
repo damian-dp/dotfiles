@@ -377,6 +377,28 @@ darwin-rebuild switch --flake .#Damian-MBP  # or home-manager for Linux
 
 The Bun runtime is pinned separately from Nixpkgs in `home/packages/bun.nix`. To upgrade it, update the version and the official release archive hashes for each supported platform, then rebuild the relevant machine configuration.
 
+### Updating Homebrew
+
+Homebrew and its taps are managed by Nix, so `brew update` cannot update them. The Homebrew version and source hash are pinned in `darwin/common.nix`, independently of the version bundled with `nix-homebrew`.
+
+To upgrade Homebrew, choose the latest stable [Homebrew release](https://github.com/Homebrew/brew/releases/latest), fetch its source hash, and update `version` and `hash` in `darwin/common.nix`:
+
+```bash
+nix store prefetch-file --json --unpack https://github.com/Homebrew/brew/archive/refs/tags/7.0.6.tar.gz
+```
+
+Replace `7.0.6` with the desired release. Refresh the Homebrew integration and tap definitions, then apply the configuration for the current Mac:
+
+```bash
+cd ~/code/dotfiles
+nix flake update nix-homebrew homebrew-core homebrew-cask
+./scripts/apply-homebrew.sh  # detects the current Mac, or pass Damian-Studio / Damian-MBP
+```
+
+These input updates leave Nixpkgs and Home Manager pinned. The script builds the Mac configuration and applies only Homebrew and its taps, without installing, upgrading, or removing applications. It keeps the build rooted at `${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/homebrew-system` so Nix garbage collection cannot remove the active Homebrew version.
+
+A full `sudo darwin-rebuild switch --flake .#Damian-Studio` (or `.#Damian-MBP`) also applies the update, but runs the existing application cleanup policy, which can uninstall apps absent from `darwin/common.nix`.
+
 ## Verification
 
 Run the machine verification script after a rebuild or bootstrap:
