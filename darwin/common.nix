@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   # =============================================================================
@@ -63,6 +63,8 @@
       "setapp"
       "spotify"
       "warp"
+      # Fully qualified, so brew bundle trusts this cask alone, not the whole Azure tap.
+      "azure/azure-cli/azure-cli-preview"
     ];
     masApps = {
       "Caffeinated" = 1362171212;
@@ -74,9 +76,28 @@
     onActivation = {
       autoUpdate = false;
       upgrade = false;
-      cleanup = "uninstall";
+      # Never remove anything undeclared; the warning below lists it instead.
+      # Forced cleanup also resets Homebrew's trust store to the Brewfile.
+      cleanup = "none";
     };
   };
+
+  # After brew bundle, list what's installed but not declared above. A dry run
+  # of `brew bundle cleanup`: it changes nothing and never fails activation.
+  system.activationScripts.homebrew.text = lib.mkIf config.homebrew.enable (lib.mkAfter ''
+    if [ -f "${config.homebrew.prefix}/bin/brew" ]; then
+      undeclared=$(${config.homebrew.onActivation.brewBundleCmd { onlyCheck = true; }} \
+        | ${pkgs.gawk}/bin/awk '
+            /^Would uninstall / { keep = 1; sub(/^Would uninstall /, ""); print "  " $0; next }
+            /^Would untap:/     { keep = 1; print "  taps:"; next }
+            /^(Would |Run `brew|==>|Error|Warning)/ { keep = 0; next }
+            keep && NF          { print "    " $0 }
+          ') || true
+      if [ -n "$undeclared" ]; then
+        printf >&2 '\e[1;33mThese are installed but not in your dotfiles, so you might want to add them to darwin/common.nix:\e[0m\n%s\n' "$undeclared"
+      fi
+    fi
+  '');
 
   # =============================================================================
   # System Packages
