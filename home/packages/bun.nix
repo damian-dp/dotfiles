@@ -1,15 +1,15 @@
 { pkgs, lib }:
 
 let
-  version = "1.4.0";
+  version = "1.4.4";
   releases = {
     aarch64-darwin = {
       archive = "bun-darwin-aarch64";
-      hash = "sha256-xmnpf2Fk4cluBwF0jbmN+ndJKQjL2DlMdVcTSnNd44E=";
+      hash = "sha256-wkDX8My5DCY6hJ/NsJt+5iYw2SE0jtaq/ahrnVd7xRA=";
     };
     x86_64-linux = {
       archive = "bun-linux-x64";
-      hash = "sha256-LQP7X7g6yLVnrKCigbLOGhoZ1Ij1bClo2Iw/Jekv5FI=";
+      hash = "sha256-v4zL+ysLgBWeD5ptFcVTF63YB3U028YTCj7bUvzLOVw=";
     };
   };
   release =
