@@ -34,6 +34,8 @@ pkgs.stdenvNoCC.mkDerivation {
   installPhase = ''
     runHook preInstall
     install -Dm755 bun "$out/bin/bun"
+    # Bun's own installer ships bunx as a link to bun, which reads argv[0].
+    ln -s bun "$out/bin/bunx"
     runHook postInstall
   '';
 
