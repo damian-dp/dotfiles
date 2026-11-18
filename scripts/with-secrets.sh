@@ -62,6 +62,23 @@ if [[ "$resolved_context" == "vm" && -z "${OP_SERVICE_ACCOUNT_TOKEN:-}" && -f "$
   OP_SERVICE_ACCOUNT_TOKEN="$(cat "$HOME/.config/op/service-account-token")"
 fi
 
+# op run keeps a variable the caller already exported instead of resolving its
+# reference, so a stale value in the shell (such as GH_NPM_TOKEN, which zshrc
+# exports from the last render) would win over 1Password. Drop every variable
+# this context's refs declare so op always resolves it.
+case "$resolved_context" in
+  mac) context_refs=(common mac) ;;
+  vm) context_refs=(common vm) ;;
+  *) context_refs=(common) ;;
+esac
+for refs in "${context_refs[@]}"; do
+  env_file="$REPO_ROOT/secrets/refs/$refs.env"
+  [[ -f "$env_file" ]] || continue
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ "$line" =~ ^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)= ]] && unset "${BASH_REMATCH[1]}"
+  done < "$env_file"
+done
+
 masking_flag=()
 if $no_masking; then
   masking_flag=(--no-masking)
