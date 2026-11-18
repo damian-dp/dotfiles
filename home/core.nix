@@ -2,6 +2,7 @@
 
 let
   bun = import ./packages/bun.nix { inherit pkgs lib; };
+  gh = import ./packages/gh.nix { inherit pkgs lib; };
 in
 
 # Core configuration - shared by all machines (Linux thin + macOS workstation)

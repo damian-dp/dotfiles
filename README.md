@@ -166,6 +166,7 @@ dotfiles/
 - **App Store (`mas`)**: App Store-only apps
 - **pnpm globals**: shared JS CLIs that should exist on every machine (`codex`, `turbo`, `vercel`, `tailwindcss`, `portless`)
 - **Bun**: the official release binary is pinned in `home/packages/bun.nix` and installed declaratively by Nix
+- **GitHub CLI (`gh`)**: the official release binary is pinned in `home/packages/gh.nix`, ahead of Nixpkgs, for `--attach` (gh 2.99+)
 - **npm globals**: intentionally unused
 - **Bun globals**: intentionally unused
 
@@ -376,6 +377,8 @@ darwin-rebuild switch --flake .#Damian-MBP  # or home-manager for Linux
 ```
 
 The Bun runtime is pinned separately from Nixpkgs in `home/packages/bun.nix`. To upgrade it, update the version and the official release archive hashes for each supported platform, then rebuild the relevant machine configuration.
+
+The GitHub CLI is pinned the same way in `home/packages/gh.nix`. To upgrade it, update the version and take each platform's hash from the release's `gh_<version>_checksums.txt` (convert with `nix hash convert --hash-algo sha256 --to sri <hex>`). Once Nixpkgs ships gh 2.99 or later, you can drop the pin and go back to `pkgs.gh`.
 
 ### Updating Homebrew
 
